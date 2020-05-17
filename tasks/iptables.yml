@@ -4,6 +4,7 @@
   include_vars: '{{ ansible_facts.os_family }}.yml'
 
 - import_tasks: init.yml
+  tags: init
 
 - import_tasks: logging.yml
   tags: base_rules
