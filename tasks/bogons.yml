@@ -1,0 +1,19 @@
+---
+
+- name: Create ipset for bogons
+  command: "ipset create {{ ipset_bogons }} hash:net family inet hashsize 64 maxelem 64"
+  when: iptables_block_bogons | bool
+
+- name: Add bogons to ipset
+  command: "ipset add {{ ipset_bogons }} {{ item }}"
+  loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
+  when: iptables_block_bogons | bool
+
+- name: Firewall rule - block all traffic involving bogons
+  iptables_raw:
+    name: block_bogons
+    weight: 15
+    rules: |
+      -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_input_drop }}
+      -A OUTPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_output_drop }}
+  when: iptables_block_bogons | bool

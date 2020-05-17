@@ -1,0 +1,10 @@
+---
+
+- name: Install ipset
+  package:
+    name: ipset
+    state: latest
+
+- name: Clear ipset rules
+  command: ipset destroy
+  when: ipset_destroy_sets | bool

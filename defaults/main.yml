@@ -1,0 +1,29 @@
+---
+
+iptables_clear_rules: true
+ipset_destroy_sets: true
+
+iptables_log_limit: 5/min
+iptables_log_level: info
+
+iptables_ban_hosts: true
+iptables_ban_burst: 5
+iptables_ban_expire: 10800000
+iptables_ban_interval: 5/hour
+iptables_ban_duration: 600
+
+iptables_allow_ssh: true
+iptables_ssh_port: 22
+iptables_allow_updates: true
+iptables_allow_ntp: true
+iptables_ntp_user: root
+iptables_allow_ping: true
+
+iptables_block_bogons: true
+
+iptables_allow_inbound: []
+iptables_allow_outbound: []
+
+# Set to false to turn the role into a no-op. Useful when using
+# the Ansible role dependency mechanism.
+iptables_configuration_enabled: true

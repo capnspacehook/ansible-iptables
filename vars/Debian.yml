@@ -1,0 +1,4 @@
+---
+
+iptables_save_package: iptables-persistent
+iptables_save_service: netfilter-persistent

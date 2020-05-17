@@ -1,0 +1,4 @@
+---
+
+iptables_save_package: iptables-services
+iptables_save_service: iptables

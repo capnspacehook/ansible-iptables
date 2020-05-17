@@ -1,0 +1,27 @@
+---
+
+- name: Firewall rule - create default logging chains
+  iptables_raw:
+    name: "{{ item.rule_name }}"
+    weight: 3
+    rules: |
+      -N {{ item.chain_name }}
+      -A {{ item.chain_name }} -m limit --limit {{ iptables_log_limit }} -j LOG --log-prefix {{ item.prefix }} --log-level {{ iptables_log_level }} --log-uid
+      -A {{ item.chain_name }} -j {{ item.action }}
+  loop:
+    - rule_name: logging_input_drop_chain
+      chain_name: "{{ log_chain_input_drop }}"
+      prefix: "INPUT:DROP:"
+      action: DROP
+    - rule_name: logging_output_drop_chain
+      chain_name: "{{ log_chain_output_drop }}"
+      prefix: "OUTPUT:DROP:"
+      action: DROP
+    - rule_name: logging_input_accept_chain
+      chain_name: "{{ log_chain_input_accept }}"
+      prefix: "INPUT:ACCEPT:"
+      action: ACCEPT
+    - rule_name: logging_output_accept_chain
+      chain_name: "{{ log_chain_output_accept }}"
+      prefix: "OUTPUT:ACCEPT:"
+      action: ACCEPT

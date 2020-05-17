@@ -1,0 +1,95 @@
+---
+
+- name: Firewall rule - allow loopback traffic
+  iptables_raw:
+    name: allow_loopback
+    weight: 0
+    rules: |
+      -A INPUT -i lo -j ACCEPT
+      -A OUTPUT -o lo -j ACCEPT
+
+- name: Firewall rule - block invalid local traffic
+  iptables_raw:
+    name: block_invalid_local
+    weight: 10
+    rules: |
+      -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
+
+- name: Firewall rule - allow ssh
+  iptables_raw:
+    name: allow-ssh
+    weight: 30
+    rules: |
+      -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state NEW -j {{ log_chain_input_accept }}
+      -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED -m owner --uid-owner root -j ACCEPT
+  when: iptables_allow_ssh | bool
+
+- name: Firewall rule - allow package updating
+  iptables_raw:
+    name: allow-updates
+    weight: 40
+    rules: |
+      -A OUTPUT -p udp --dport 53 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport 53 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --dport 80 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport 80 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --dport 443 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p tcp --sport 443 -m state --state ESTABLISHED -j ACCEPT
+  when: iptables_allow_updates | bool
+
+- name: Firewall rule - allow ntp
+  iptables_raw:
+    name: allow-ntp
+    weight: 50
+    rules: |
+      -A OUTPUT -p udp --dport 123 -m state --state NEW -m owner --uid-owner {{ iptables_ntp_user }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport 123 -m state --state ESTABLISHED -m owner --uid-owner {{ iptables_ntp_user }} -j ACCEPT
+      -A INPUT -p udp --sport 123 -m state --state ESTABLISHED -j ACCEPT
+  when: iptables_allow_ntp | bool
+
+- name: Firewall rule - allow ping and block ping of death
+  iptables_raw:
+    name: allow_ping
+    weight: 60
+    rules: |
+      -N PING_OF_DEATH
+      -A PING_OF_DEATH -p icmp --icmp-type echo-request -m hashlimit --hashlimit 1/s --hashlimit-burst 3 --hashlimit-htable-expire 300000 --hashlimit-mode srcip --hashlimit-name {{ iptables_death_ping_hashtable }} -j {{ log_chain_input_accept }}
+      -A PING_OF_DEATH -j {{ log_chain_input_drop }}
+      -A INPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j PING_OF_DEATH
+      -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A OUTPUT -p icmp --icmp-type echo-reply -m owner --uid-owner root -j ACCEPT
+  when: iptables_allow_ping | bool
+
+- name: Firewall rule - log dropped packets that fall through
+  iptables_raw:
+    name: log_dropped
+    weight: 70
+    rules: |
+      -A INPUT -j {{ ban_chain }}
+      -A OUTPUT -j {{ log_chain_output_drop }}
+
+- name: Firewall rule - set default policies
+  iptables_raw:
+    name: default_policies
+    rules: |
+      -P INPUT DROP
+      -P FORWARD DROP
+      -P OUTPUT DROP
+
+- name: Firewall rule - block all ipv6 traffic
+  iptables_raw:
+    name: default_policies
+    ipversion: 6
+    rules: |
+      -P INPUT DROP
+      -P FORWARD DROP
+      -P OUTPUT DROP
+
+- name: Make firewall rules persistent across reboots
+  command: 
+    cmd: "/usr/sbin/service {{ iptables_save_service }} save"
+    warn: false
