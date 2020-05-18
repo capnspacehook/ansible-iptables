@@ -37,8 +37,8 @@ Role Variables
 |`iptables_ban_duration`|600|amount of seconds to ban offending hosts|
 |`iptables_allow_ssh`|true|true if you want to allow SSH inbound|
 |`iptables_ssh_port`|22|port to allow SSH inbound on|
-|`iptables_allow_updates`|true|true if you want to allow ports 53 udp, 80 tcp and 443 tcp outbound|
-|`iptables_allow_ntp`|true|true if you want to allow port 123 udp outbound|
+|`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound|
+|`iptables_allow_ntp`|true|true if you want to allow port `123 udp` outbound|
 |`iptables_ntp_user`|root|user that owns the NTP daemon, for example if `chrony` is installed this should `_chrony`|
 |`iptables_allow_ping`|true|true if you want to allow ICMP echo requests inbound|
 |`iptables_block_bogons`|true|true if you want to block all traffic involving bogons/martians|
