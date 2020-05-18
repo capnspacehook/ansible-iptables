@@ -7,9 +7,9 @@ iptables_log_limit: 5/min
 iptables_log_level: info
 
 iptables_ban_hosts: true
+iptables_ban_interval: 5/hour
 iptables_ban_burst: 5
 iptables_ban_expire: 10800000
-iptables_ban_interval: 5/hour
 iptables_ban_duration: 600
 
 iptables_allow_ssh: true
