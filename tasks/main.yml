@@ -2,4 +2,3 @@
 
 - import_tasks: iptables.yml
   when: iptables_configuration_enabled | bool
-

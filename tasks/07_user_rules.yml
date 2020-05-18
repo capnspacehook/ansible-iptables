@@ -19,5 +19,3 @@
       -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
       -A INPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
   loop: "{{ iptables_allow_outbound }}"
-
-# TODO: allow setting users/groups
