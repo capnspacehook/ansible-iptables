@@ -7,7 +7,7 @@ galaxy_info:
   - name: Debian
     versions:
     - stretch
-  - name: CentOS
+  - name: EL
     versions:
     - 8
   galaxy_tags:
