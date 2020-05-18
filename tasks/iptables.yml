@@ -3,24 +3,28 @@
 - name: Set OS family dependent variables
   include_vars: '{{ ansible_facts.os_family }}.yml'
 
-- import_tasks: init.yml
+- import_tasks: 00_init.yml
   tags: init
 
-- import_tasks: logging.yml
+- import_tasks: 01_logging.yml
   tags: base_rules
 
-- import_tasks: base_rules.yml
+- import_tasks: 02_base_rules.yml
   tags: base_rules
 
-- import_tasks: ipset.yml
+- import_tasks: 03_block_attacks.yml
+  tags: block_attacks
+
+- import_tasks: 04_ipset.yml
   tags: ipset
   when: iptables_ban_hosts or iptables_block_bogons
 
-- import_tasks: block_attacks.yml
-  tags: block_attacks
+- import_tasks: 05_ban_hosts.yml
+  tags: ban_hosts
 
-- import_tasks: bogons.yml
+- import_tasks: 06_bogons.yml
   tags: bogons
+  when: iptables_block_bogons | bool
 
-- import_tasks: user_rules.yml
+- import_tasks: 07_user_rules.yml
   tags: user_rules

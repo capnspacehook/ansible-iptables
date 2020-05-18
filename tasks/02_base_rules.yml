@@ -90,6 +90,6 @@
       -P OUTPUT DROP
 
 - name: Make firewall rules persistent across reboots
-  command: 
+  command:
     cmd: "/usr/sbin/service {{ iptables_save_service }} save"
     warn: false

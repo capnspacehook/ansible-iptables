@@ -28,6 +28,7 @@
       -N {{ ban_chain }}
   when: iptables_ban_hosts | bool
 
-- set_fact:
+- name: Set ban chain to log chain if host banning is disabled
+  set_fact:
     ban_chain: "{{ log_chain_input_drop }}"
   when: not iptables_ban_hosts

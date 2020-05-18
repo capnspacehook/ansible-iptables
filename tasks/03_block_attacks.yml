@@ -1,0 +1,20 @@
+---
+
+- name: Firewall rule - block portscans and attacks
+  iptables_raw:
+    name: block-attacks
+    weight: 20
+    rules: |
+      -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ACK,PSH PSH -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ACK,URG URG -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ALL ALL -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ALL NONE -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ALL FIN,PSH,URG -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ALL SYN,FIN,PSH,URG -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j {{ ban_chain }}
+      -A INPUT -f -j {{ ban_chain }}
+      -A INPUT -p tcp ! --syn -m state --state NEW -j {{ ban_chain }}
