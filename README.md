@@ -13,8 +13,11 @@ Default rules are:
 - allow NTP outbound
 - allow ICMP echo requests inbound and ICMP replies outbound
 - ban hosts that trigger multiple DROP rules in a configurable timeframe
+- log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic seperately
 
 In addition to this, a package to persist `iptables` rules upon reboot is installed and configured, and if bogon or host banning is enabled, `ipset` is installed.
+
+The benefits of using this role are robust logging, portscan blocking, automatic host banning, ICMP rate limiting and filtering (most ICMP reverse shells shouldn't work), and strict rules that only allow established traffic outbound for an inbound rule and vice versa, as well as filtering outbound traffic by specific user/groups.
 
 Requirements
 ------------
