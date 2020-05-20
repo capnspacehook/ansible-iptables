@@ -56,9 +56,10 @@ Any of the `*_user` variables can be unset or set to an empty string to make the
 
 The `iptables_allow_inbound` and `iptables_allow_outbound` variables can be used to add additional rules. Both varibles take a list of dicts, with the following keys:
 
+- name: optional; name of the service
 - proto: the protocol to allow
 - port: the port to allow
-- user: the user to allow
+- user: optional; the user to allow
 
 ## Installation
 
@@ -78,7 +79,8 @@ ansible-galaxy install capnspacehook.iptables
     iptables_log_limit: 1/sec
     iptables_ntp_user: _chrony
     iptables_allow_inbound:
-      - port: 1337
+      - name: leet_server
+        port: 1337
         proto: udp
         user: root
 ``` 
