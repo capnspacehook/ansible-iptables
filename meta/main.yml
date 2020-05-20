@@ -1,6 +1,7 @@
 galaxy_info:
-  author: Andrew LeFevre
+  role_name: iptables
   description: This role applies a secure set of all-around iptables rules with many configurable options.
+  author: Andrew LeFevre
   license: license GPL-3.0
   min_ansible_version: 2.9
   platforms:
