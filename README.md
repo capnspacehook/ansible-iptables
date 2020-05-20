@@ -35,16 +35,19 @@ Role Variables
 |`iptables_log_level`|info|level at which `iptables` will log|
 |`iptables_ban_hosts`|true|if true, rules will be created that automatically ban hosts that trigger a threshold of DROP rules within a timeframe|
 |`iptables_ban_interval`|5/hour|amount of DROP rules a host can hit within a timeframe that will trigger a ban|
-|`iptables_ban_burst`|5|TODO|
+|`iptables_ban_burst`|5|the number of initial packets to allow before starting to match on the ban interval|
 |`iptables_ban_expire`|10800000|amount of milliseconds to remember hosts that triggered DROP rules|
 |`iptables_ban_duration`|600|amount of seconds to ban offending hosts|
 |`iptables_allow_ssh`|true|true if you want to allow SSH inbound|
 |`iptables_ssh_port`|22|port to allow SSH inbound on|
+|`iptables_ssh_user`|root|user that owns the SSH daemon and/or that should be able to make SSH connections|
 |`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound|
 |`iptables_allow_ntp`|true|true if you want to allow port `123 udp` outbound|
 |`iptables_ntp_user`|root|user that owns the NTP daemon, for example if `chrony` is installed this should `_chrony`|
 |`iptables_allow_ping`|true|true if you want to allow ICMP echo requests inbound|
 |`iptables_block_bogons`|true|true if you want to block all traffic involving bogons/martians|
+|`iptables_allow_inbound`|[]|additional ports to allow inbound|
+|`iptables_allow_outbound`|[]|additional ports to allow outbound|
 |`iptables_configuration_enabled`|true|true if you want this role to run|
 
 Installation
@@ -59,10 +62,15 @@ ansible-galaxy install capnspacehook.iptables
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
 ```yaml
 - hosts: localhost
   roles:
     - capnspacehook.iptables
+  vars:
+    iptables_log_limit: 1/sec
+    iptables_ntp_user: _chrony
+    iptables_allow_inbound:
+      - port: 1337
+        proto: udp
+        user: root
 ``` 

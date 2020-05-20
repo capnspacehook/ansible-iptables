@@ -14,9 +14,13 @@ iptables_ban_duration: 600
 
 iptables_allow_ssh: true
 iptables_ssh_port: 22
+iptables_ssh_user: root
+
 iptables_allow_updates: true
+
 iptables_allow_ntp: true
 iptables_ntp_user: root
+
 iptables_allow_ping: true
 
 iptables_block_bogons: true

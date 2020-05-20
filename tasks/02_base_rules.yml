@@ -22,7 +22,7 @@
     rules: |
       -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED -m owner --uid-owner root -j ACCEPT
+      -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED -m owner --uid-owner {{ iptables_ssh_user }} -j ACCEPT
   when: iptables_allow_ssh | bool
 
 - name: Firewall rule - allow package updating

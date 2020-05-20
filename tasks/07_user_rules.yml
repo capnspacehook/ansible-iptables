@@ -7,7 +7,7 @@
     rules: |
       -A INPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if item.user is defined else '' }} -j ACCEPT
   loop: "{{ iptables_allow_inbound }}"
 
 - name: Firewall rule - user outbound allow rules
@@ -15,7 +15,7 @@
     name: user_allow_outbound
     weight: 26
     rules: |
-      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state NEW {{ ('-m owner --uid-owner '~item.user) if item.user is defined else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if item.user is defined else '' }} -j ACCEPT
       -A INPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
   loop: "{{ iptables_allow_outbound }}"
