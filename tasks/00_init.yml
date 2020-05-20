@@ -7,7 +7,7 @@
 
 - name: Install package to persist iptables rules
   package:
-    name: '{{ iptables_save_package }}'
+    name: "{{ iptables_save_package }}"
     state: latest
 
 - name: Flush existing firewall rules

@@ -1,7 +1,7 @@
 ---
 
 - name: Set OS family dependent variables
-  include_vars: '{{ ansible_facts.os_family }}.yml'
+  include_vars: "{{ ansible_facts.os_family }}.yml"
 
 - import_tasks: 00_init.yml
   tags: init
@@ -21,6 +21,7 @@
 
 - import_tasks: 05_ban_hosts.yml
   tags: ban_hosts
+  when: iptables_ban_hosts | bool
 
 - import_tasks: 06_bogons.yml
   tags: bogons
