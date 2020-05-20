@@ -1,5 +1,4 @@
-Iptables (Ansible Role)
-=======================
+# Iptables (Ansible Role)
 
 This role applies a strict, secure `iptables` set of rules with many configurable options. 
 
@@ -19,13 +18,11 @@ In addition to this, a package to persist `iptables` rules upon reboot is instal
 
 The benefits of using this role are robust logging, portscan blocking, automatic host banning, ICMP rate limiting and filtering (most ICMP reverse shells shouldn't work), and strict rules that only allow established traffic outbound for an inbound rule and vice versa, as well as filtering outbound traffic by specific user/groups.
 
-Requirements
-------------
+## Requirements
 
 This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_raw) module for manipulating `iptables`. The embedded module is current as of commit https://github.com/Nordeus/ansible_iptables_raw/commit/86ee3e0997af235bcd0a8b1ae5982f43e9612518.
 
-Role Variables
---------------
+## Role Variables
 
 |Name|Default Value|Description|
 |----|-------------|-----------|
@@ -45,13 +42,25 @@ Role Variables
 |`iptables_allow_ntp`|true|true if you want to allow port `123 udp` outbound|
 |`iptables_ntp_user`|root|user that owns the NTP daemon, for example if `chrony` is installed this should `_chrony`|
 |`iptables_allow_ping`|true|true if you want to allow ICMP echo requests inbound|
+|`iptables_ping_user`|root|user to allow ICMP replies outbound|
 |`iptables_block_bogons`|true|true if you want to block all traffic involving bogons/martians|
 |`iptables_allow_inbound`|[]|additional ports to allow inbound|
 |`iptables_allow_outbound`|[]|additional ports to allow outbound|
 |`iptables_configuration_enabled`|true|true if you want this role to run|
 
-Installation
-------------
+## User Filering
+
+Any of the `*_user` variables can be unset or set to an empty string to make them allow all users.
+
+## Additional Rules
+
+The `iptables_allow_inbound` and `iptables_allow_outbound` variables can be used to add additional rules. Both varibles take a list of dicts, with the following keys:
+
+- proto: the protocol to allow
+- port: the port to allow
+- user: the user to allow
+
+## Installation
 
 Install the role with ansible-galaxy:
 
@@ -59,8 +68,7 @@ Install the role with ansible-galaxy:
 ansible-galaxy install capnspacehook.iptables
 ```
 
-Example Playbook
-----------------
+## Example Playbook
 
 ```yaml
 - hosts: localhost

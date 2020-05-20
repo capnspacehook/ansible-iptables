@@ -22,6 +22,7 @@ iptables_allow_ntp: true
 iptables_ntp_user: root
 
 iptables_allow_ping: true
+iptables_ping_user: root
 
 iptables_block_bogons: true
 

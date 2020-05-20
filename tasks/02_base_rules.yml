@@ -22,7 +22,7 @@
     rules: |
       -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED -m owner --uid-owner {{ iptables_ssh_user }} -j ACCEPT
+      -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ssh_user) if (iptables_ssh_user != '' and iptables_ssh_user) else '' }} -j ACCEPT
   when: iptables_allow_ssh | bool
 
 - name: Firewall rule - allow package updating
@@ -46,8 +46,8 @@
     name: allow-ntp
     weight: 50
     rules: |
-      -A OUTPUT -p udp --dport 123 -m state --state NEW -m owner --uid-owner {{ iptables_ntp_user }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p udp --dport 123 -m state --state ESTABLISHED -m owner --uid-owner {{ iptables_ntp_user }} -j ACCEPT
+      -A OUTPUT -p udp --dport 123 -m state --state NEW {{ ('-m owner --uid-owner '~iptables_ntp_user) if (iptables_ntp_user != '' and iptables_ntp_user) else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport 123 -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if (iptables_ntp_user != '' and iptables_ntp_user) else '' }} -j ACCEPT
       -A INPUT -p udp --sport 123 -m state --state ESTABLISHED -j ACCEPT
   when: iptables_allow_ntp | bool
 
@@ -61,8 +61,15 @@
       -A PING_OF_DEATH -j {{ log_chain_input_drop }}
       -A INPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j PING_OF_DEATH
       -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -A OUTPUT -p icmp --icmp-type echo-reply -m owner --uid-owner root -j ACCEPT
   when: iptables_allow_ping | bool
+
+- name: Firewall rule - filter ping by user
+  iptables_raw:
+    name: filter_ping_user
+    weight: 61
+    rules: |
+      -A OUTPUT -p icmp --icmp-type echo-reply -m owner --uid-owner {{ iptables_ping_user }} -j ACCEPT
+  when: (iptables_allow_ping | bool) and (iptables_ping_user != '' and iptables_ping_user)
 
 - name: Firewall rule - log dropped packets that fall through
   iptables_raw:
