@@ -46,9 +46,9 @@
     name: allow-ntp
     weight: 50
     rules: |
-      -A OUTPUT -p udp --dport 123 -m state --state NEW {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p udp --dport 123 -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
-      -A INPUT -p udp --sport 123 -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p udp --dport {{ iptables_ntp_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport {{ iptables_ntp_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
+      -A INPUT -p udp --sport {{ iptables_ntp_port }} -m state --state ESTABLISHED -j ACCEPT
   when: iptables_allow_ntp | bool
 
 - name: Firewall rule - allow ping and block ping of death

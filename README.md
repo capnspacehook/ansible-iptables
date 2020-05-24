@@ -40,6 +40,7 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_ssh_user`|root|user that owns the SSH daemon and/or that should be able to make SSH connections|
 |`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound|
 |`iptables_allow_ntp`|true|true if you want to allow port `123 udp` outbound|
+|`iptables_ntp_port`|123|port to allow NTP inbound on|
 |`iptables_ntp_user`|root|user that owns the NTP daemon, for example if `chrony` is installed this should `_chrony`|
 |`iptables_allow_ping`|true|true if you want to allow ICMP echo requests inbound|
 |`iptables_ping_user`|root|user to allow ICMP replies outbound|
