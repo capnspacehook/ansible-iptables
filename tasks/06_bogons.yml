@@ -1,10 +1,10 @@
 ---
 
 - name: Create ipset for bogons
-  command: "ipset create {{ ipset_bogons }} hash:net family inet hashsize 64 maxelem 64"
+  command: "ipset create {{ ipset_bogons }} hash:net family inet hashsize 64 maxelem 64 -exist"
 
 - name: Add bogons to ipset
-  command: "ipset add {{ ipset_bogons }} {{ item }}"
+  command: "ipset add {{ ipset_bogons }} {{ item }} -exist"
   loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
 
 - name: Firewall rule - block all traffic involving bogons
