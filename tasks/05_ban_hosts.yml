@@ -11,6 +11,7 @@
       -N {{ ban_chain }}
       -A {{ ban_chain }} -m hashlimit --hashlimit-above {{ iptables_ban_interval }} --hashlimit-burst {{ iptables_ban_burst }} --hashlimit-htable-expire {{ iptables_ban_expire }} --hashlimit-mode srcip --hashlimit-name {{ iptables_suspicious_hashtable }} -j SET --add-set {{ ipset_banned }} src
       -A {{ ban_chain }} -j {{ log_chain_input_drop }}
+  notify: Persist rules
 
 - name: Firewall rule - drop banned traffic
   iptables_raw:
@@ -18,3 +19,4 @@
     weight: 15
     rules: |
       -A INPUT -m set --set {{ ipset_banned }} src -j {{ log_chain_input_drop }}
+  notify: Persist rules

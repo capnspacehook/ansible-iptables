@@ -7,13 +7,16 @@
     rules: |
       -A INPUT -i lo -j ACCEPT
       -A OUTPUT -o lo -j ACCEPT
+  notify: Persist rules
 
 - name: Firewall rule - block invalid local traffic
   iptables_raw:
     name: block_invalid_local
     weight: 10
     rules: |
+      -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
       -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
+  notify: Persist rules
 
 - name: Firewall rule - allow ssh
   iptables_raw:
@@ -24,6 +27,7 @@
       -A INPUT -p tcp --dport {{ iptables_ssh_port }} -m state --state ESTABLISHED -j ACCEPT
       -A OUTPUT -p tcp --sport {{ iptables_ssh_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j ACCEPT
   when: iptables_allow_ssh | bool
+  notify: Persist rules
 
 - name: Firewall rule - allow package updating
   iptables_raw:
@@ -40,6 +44,7 @@
       -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
       -A INPUT -p tcp --sport 443 -m state --state ESTABLISHED -j ACCEPT
   when: iptables_allow_updates | bool
+  notify: Persist rules
 
 - name: Firewall rule - allow ntp
   iptables_raw:
@@ -50,6 +55,7 @@
       -A OUTPUT -p udp --dport {{ iptables_ntp_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
       -A INPUT -p udp --sport {{ iptables_ntp_port }} -m state --state ESTABLISHED -j ACCEPT
   when: iptables_allow_ntp | bool
+  notify: Persist rules
 
 - name: Firewall rule - allow ping and block ping of death
   iptables_raw:
@@ -62,6 +68,7 @@
       -A INPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j PING_OF_DEATH
       -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
   when: iptables_allow_ping | bool
+  notify: Persist rules
 
 - name: Firewall rule - filter ping by user
   iptables_raw:
@@ -70,6 +77,7 @@
     rules: |
       -A OUTPUT -p icmp --icmp-type echo-reply -m owner --uid-owner {{ iptables_ping_user }} -j ACCEPT
   when: iptables_allow_ping and iptables_ping_user
+  notify: Persist rules
 
 - name: Firewall rule - log dropped packets that fall through
   iptables_raw:
@@ -78,6 +86,7 @@
     rules: |
       -A INPUT -j {{ ban_chain }}
       -A OUTPUT -j {{ log_chain_output_drop }}
+  notify: Persist rules
 
 - name: Firewall rule - set default policies
   iptables_raw:
@@ -86,6 +95,7 @@
       -P INPUT DROP
       -P FORWARD DROP
       -P OUTPUT DROP
+  notify: Persist rules
 
 - name: Firewall rule - block all ipv6 traffic
   iptables_raw:
@@ -95,8 +105,4 @@
       -P INPUT DROP
       -P FORWARD DROP
       -P OUTPUT DROP
-
-- name: Make firewall rules persistent across reboots
-  command:
-    cmd: "/usr/sbin/service {{ iptables_save_service }} save"
-    warn: false
+  notify: Persist rules

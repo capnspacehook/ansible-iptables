@@ -27,6 +27,7 @@
     rules: |
       -N {{ ban_chain }}
   when: iptables_ban_hosts | bool
+  notify: Persist rules
 
 - name: Set ban chain to log chain if host banning is disabled
   set_fact:

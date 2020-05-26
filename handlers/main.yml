@@ -1,0 +1,6 @@
+---
+
+- name: Persist rules
+  command:
+    cmd: "/usr/sbin/service {{ iptables_save_service }} save"
+    warn: false

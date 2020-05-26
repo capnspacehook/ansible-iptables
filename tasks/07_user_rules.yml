@@ -9,6 +9,7 @@
       -A INPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
       -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j ACCEPT
   loop: "{{ iptables_allow_inbound }}"
+  notify: Persist rules
 
 - name: Firewall rule - user outbound allow rules
   iptables_raw:
@@ -19,3 +20,4 @@
       -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j ACCEPT
       -A INPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
   loop: "{{ iptables_allow_outbound }}"
+  notify: Persist rules

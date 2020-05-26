@@ -18,3 +18,4 @@
       -A INPUT -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j {{ ban_chain }}
       -A INPUT -f -j {{ ban_chain }}
       -A INPUT -p tcp ! --syn -m state --state NEW -j {{ ban_chain }}
+  notify: Persist rules

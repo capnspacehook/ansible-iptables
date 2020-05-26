@@ -25,3 +25,4 @@
       chain_name: "{{ log_chain_output_accept }}"
       prefix: "OUTPUT:ACCEPT:"
       action: ACCEPT
+  notify: Persist rules
