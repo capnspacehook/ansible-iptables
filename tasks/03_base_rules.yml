@@ -1,0 +1,64 @@
+---
+
+- name: Firewall rule - allow loopback traffic
+  iptables_raw:
+    name: allow_loopback
+    weight: 0
+    rules: |
+      -A INPUT -i lo -j ACCEPT
+      -A OUTPUT -o lo -j ACCEPT
+  notify: Persist rules
+
+- name: Firewall rule - block invalid local traffic
+  iptables_raw:
+    name: block_invalid_local
+    weight: 10
+    rules: |
+      -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
+      -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
+  notify: Persist rules
+
+- name: Firewall rule - allow package updating
+  iptables_raw:
+    name: allow-updates
+    weight: 50
+    rules: |
+      -A OUTPUT -p udp --dport 53 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport 53 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --dport 80 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport 80 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --dport 443 -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -p tcp --sport 443 -m state --state ESTABLISHED -j ACCEPT
+  when: iptables_allow_updates | bool
+  notify: Persist rules
+
+- name: Firewall rule - log dropped packets that fall through
+  iptables_raw:
+    name: log_dropped
+    weight: 70
+    rules: |
+      -A INPUT -j {{ ban_chain }}
+      -A OUTPUT -j {{ log_chain_output_drop }}
+  notify: Persist rules
+
+- name: Firewall rule - set default policies
+  iptables_raw:
+    name: default_policies
+    rules: |
+      -P INPUT DROP
+      -P FORWARD DROP
+      -P OUTPUT DROP
+  notify: Persist rules
+
+- name: Firewall rule - block all ipv6 traffic
+  iptables_raw:
+    name: default_policies
+    ipversion: 6
+    rules: |
+      -P INPUT DROP
+      -P FORWARD DROP
+      -P OUTPUT DROP
+  notify: Persist rules

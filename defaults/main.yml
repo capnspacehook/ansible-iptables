@@ -12,18 +12,25 @@ iptables_ban_burst: 5
 iptables_ban_expire: 10800000
 iptables_ban_duration: 600
 
-iptables_allow_ssh: true
-iptables_ssh_port: 22
-iptables_ssh_user: root
+iptables_allow_ssh_inbound: true
+iptables_ssh_inbound_port: 22
+iptables_allow_ssh_outbound: false
+iptables_ssh_outbound_ports: 
+  - 22
+iptables_ssh_users: root
+
+iptables_allow_ntp_outbound: true
+iptables_ntp_outbound_ports: 
+  - 123
+iptables_allow_ntp_inbound: false
+iptables_ntp_inbound_port: 123
+iptables_ntp_users: root
 
 iptables_allow_updates: true
 
-iptables_allow_ntp: true
-iptables_ntp_port: 123
-iptables_ntp_user: root
-
-iptables_allow_ping: true
-iptables_ping_user: root
+iptables_allow_ping_inbound: true
+iptables_allow_ping_outbound: false
+iptables_ping_users: root
 
 iptables_block_bogons: true
 
