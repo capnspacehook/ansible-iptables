@@ -9,30 +9,15 @@
       -A OUTPUT -o lo -j ACCEPT
   notify: Persist rules
 
-- name: Firewall rule - block invalid local traffic
+- name: Firewall rule - block invalid traffic
   iptables_raw:
-    name: block_invalid_local
+    name: block_invalid
     weight: 10
     rules: |
       -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
+      -A OUTPUT -m state --state INVALID -j {{ log_chain_output_drop }}
       -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
-  notify: Persist rules
-
-- name: Firewall rule - allow package updating
-  iptables_raw:
-    name: allow-updates
-    weight: 50
-    rules: |
-      -A OUTPUT -p udp --dport 53 -m state --state NEW -j {{ log_chain_output_accept }}
-      -A OUTPUT -p udp --dport 53 -m state --state ESTABLISHED -j ACCEPT
-      -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --dport 80 -m state --state NEW -j {{ log_chain_output_accept }}
-      -A OUTPUT -p tcp --dport 80 -m state --state ESTABLISHED -j ACCEPT
-      -A INPUT -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --dport 443 -m state --state NEW -j {{ log_chain_output_accept }}
-      -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
-      -A INPUT -p tcp --sport 443 -m state --state ESTABLISHED -j ACCEPT
-  when: iptables_allow_updates | bool
+      -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_output_drop }}
   notify: Persist rules
 
 - name: Firewall rule - log dropped packets that fall through

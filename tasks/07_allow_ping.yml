@@ -13,21 +13,12 @@
   when: iptables_allow_ping_inbound | bool
   notify: Persist rules
 
-- name: Firewall rule - filter ping replies by user
-  iptables_raw:
-    name: filter_ping_user
-    weight: 60
-    rules: |
-      -A OUTPUT -p icmp --icmp-type echo-reply -m owner --uid-owner {{ iptables_ping_users }} -j ACCEPT
-  when: iptables_allow_ping_inbound and iptables_ping_users
-  notify: Persist rules
-
 - name: Firewall rule - allow ping outbound
   iptables_raw:
     name: allow_ping_outbound
     weight: 60
     rules: |
-      -A OUTPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j {{ log_chain_output_accept }}
+      -A OUTPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED {{ ('-m owner --uid-owner '~iptables_ping_users) if iptables_ping_users else '' }} -j {{ log_chain_output_accept }}
       -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
   when: iptables_allow_ping_outbound | bool
   notify: Persist rules

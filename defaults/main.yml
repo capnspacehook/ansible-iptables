@@ -27,6 +27,15 @@ iptables_ntp_inbound_port: 123
 iptables_ntp_users: root
 
 iptables_allow_updates: true
+iptables_allow_dns_inbound: false
+iptables_dns_inbound_port: 53
+iptables_dns_users: root
+iptables_allow_http_inbound: false
+iptables_http_inbound_port: 80
+iptables_http_users: root
+iptables_allow_https_inbound: false
+iptables_https_inbound_port: 443
+iptables_https_users: root
 
 iptables_allow_ping_inbound: true
 iptables_allow_ping_outbound: false

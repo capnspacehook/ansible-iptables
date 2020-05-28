@@ -21,20 +21,23 @@
 - import_tasks: 05_allow_ntp.yml
   tags: allow_ntp
 
-- import_tasks: 06_allow_ping.yml
+- import_tasks: 06_allow_updates.yml
+  tags: allow_updates
+
+- import_tasks: 07_allow_ping.yml
   tags: allow_ping
 
-- import_tasks: 07_ipset.yml
+- import_tasks: 08_ipset.yml
   tags: ipset
   when: iptables_ban_hosts or iptables_block_bogons
 
-- import_tasks: 08_ban_hosts.yml
+- import_tasks: 09_ban_hosts.yml
   tags: ban_hosts
   when: iptables_ban_hosts | bool
 
-- import_tasks: 09_bogons.yml
+- import_tasks: 10_bogons.yml
   tags: bogons
   when: iptables_block_bogons | bool
 
-- import_tasks: 10_user_rules.yml
+- import_tasks: 11_user_rules.yml
   tags: user_rules
