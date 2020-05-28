@@ -96,8 +96,8 @@ ansible-galaxy install capnspacehook.iptables
     iptables_log_limit: 1/sec
     iptables_ntp_user: _chrony
     iptables_allow_inbound:
-      - name: leet_server
-        port: 1337
-        proto: udp
-        user: root
+      - name: postgres
+        port: 5432
+        proto: tcp
+        user: postgres
 ``` 
