@@ -10,7 +10,7 @@ Default rules are:
 - allow SSH inbound
 - allow DNS, HTTP, and HTTPS outbound for updating
 - allow NTP outbound
-- allow ICMP echo requests inbound and ICMP replies outbound
+- allow ICMP echo-requests inbound and ICMP echo-replies outbound
 - ban hosts that trigger multiple DROP rules in a configurable timeframe
 - log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic seperately
 
@@ -35,15 +35,29 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_ban_burst`|5|the number of initial packets to allow before starting to match on the ban interval|
 |`iptables_ban_expire`|10800000|amount of milliseconds to remember hosts that triggered DROP rules|
 |`iptables_ban_duration`|600|amount of seconds to ban offending hosts|
-|`iptables_allow_ssh`|true|true if you want to allow SSH inbound|
-|`iptables_ssh_port`|22|port to allow SSH inbound on|
+|`iptables_allow_ssh_inbound`|true|true if you want to allow SSH inbound|
+|`iptables_ssh_inbound_port`|22|port to allow SSH inbound on|
+|`iptables_allow_ssh_outbound`|false|true if you want to allow SSH outbound|
+|`iptables_ssh_outbound_ports`|[22]|ports you want to allow SSH outbound on|
 |`iptables_ssh_user`|root|user that owns the SSH daemon and/or that should be able to make SSH connections|
-|`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound|
-|`iptables_allow_ntp`|true|true if you want to allow port `123 udp` outbound|
-|`iptables_ntp_port`|123|port to allow NTP inbound on|
-|`iptables_ntp_user`|root|user that owns the NTP daemon, for example if `chrony` is installed this should `_chrony`|
-|`iptables_allow_ping`|true|true if you want to allow ICMP echo requests inbound|
-|`iptables_ping_user`|root|user to allow ICMP replies outbound|
+|`iptables_allow_ntp_outbound`|true|true if you want to allow NTP outbound|
+|`iptables_ntp_outbound_ports`|[123]|ports you want to allow NTP outbound on|
+|`iptables_allow_ntp_inbound`|false|true if you want to allow NTP inbound|
+|`iptables_ntp_inbound_port`|123|port to allow NTP inbound on|
+|`iptables_ntp_user`|root|user that owns the NTP daemon and/or that should be able to make NTP connections|
+|`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound for package updating|
+|`iptables_allow_dns_inbound`|false|true if you want to allow DNS inbound|
+|`iptables_dns_inbound_port`|53|port to allow DNS inbound on|
+|`iptables_dns_user`|root|user that owns the DNS daemon and/or that should be able to make DNS connections|
+|`iptables_allow_http_inbound`|false|true if you want to allow HTTP inbound|
+|`iptables_http_inbound_port`|80|port to allow HTTP inbound on|
+|`iptables_http_user`|root|user that owns the HTTP daemon and/or that should be able to make HTTP connections|
+|`iptables_allow_https_inbound`|false|true if you want to allow HTTPS inbound|
+|`iptables_https_inbound_port`|80|port to allow HTTPS inbound on|
+|`iptables_https_user`|root|user that owns the HTTPS daemon and/or that should be able to make HTTPS connections|
+|`iptables_allow_ping_inbound`|true|true if you want to make your box pingable|
+|`iptables_allow_ping_outbound`|false|true if you want to ping other boxes|
+|`iptables_ping_user`|root|user to allow sending ICMP echo-requests outbound|
 |`iptables_block_bogons`|true|true if you want to block all traffic involving bogons/martians|
 |`iptables_allow_inbound`|[]|additional ports to allow inbound|
 |`iptables_allow_outbound`|[]|additional ports to allow outbound|
@@ -51,7 +65,9 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 
 ## User Filering
 
-Any of the `*_user` variables can be unset or set to an empty string to make them allow all users.
+Any of the `*_user` variables can be unset or set to an empty string to make them allow all users. Currently only one user can be allowed. 
+
+I could add the ability to allow multiple users/groups per service, but that would require a decent amount of work. I personally don't need this capability, but if you do please make an issue and inform me of your use case.
 
 ## Additional Rules
 

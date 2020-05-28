@@ -17,29 +17,29 @@ iptables_ssh_inbound_port: 22
 iptables_allow_ssh_outbound: false
 iptables_ssh_outbound_ports: 
   - 22
-iptables_ssh_users: root
+iptables_ssh_user: root
 
 iptables_allow_ntp_outbound: true
 iptables_ntp_outbound_ports: 
   - 123
 iptables_allow_ntp_inbound: false
 iptables_ntp_inbound_port: 123
-iptables_ntp_users: root
+iptables_ntp_user: root
 
 iptables_allow_updates: true
 iptables_allow_dns_inbound: false
 iptables_dns_inbound_port: 53
-iptables_dns_users: root
+iptables_dns_user: root
 iptables_allow_http_inbound: false
 iptables_http_inbound_port: 80
-iptables_http_users: root
+iptables_http_user: root
 iptables_allow_https_inbound: false
 iptables_https_inbound_port: 443
-iptables_https_users: root
+iptables_https_user: root
 
 iptables_allow_ping_inbound: true
 iptables_allow_ping_outbound: false
-iptables_ping_users: root
+iptables_ping_user: root
 
 iptables_block_bogons: true
 

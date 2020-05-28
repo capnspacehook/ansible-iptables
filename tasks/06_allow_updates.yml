@@ -5,14 +5,14 @@
     name: allow-updates
     weight: 50
     rules: |
-      -A OUTPUT -p udp --dport {{ default_dns_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_dns_users) if iptables_dns_users else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p udp --dport {{ default_dns_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_dns_users) if iptables_dns_users else '' }} -j ACCEPT
+      -A OUTPUT -p udp --dport {{ default_dns_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_dns_user) if iptables_dns_user else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p udp --dport {{ default_dns_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_dns_user) if iptables_dns_user else '' }} -j ACCEPT
       -A INPUT -p udp --sport {{ default_dns_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --dport {{ default_http_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_http_users) if iptables_http_users else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p tcp --dport {{ default_http_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_http_users) if iptables_http_users else '' }} -j ACCEPT
+      -A OUTPUT -p tcp --dport {{ default_http_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_http_user) if iptables_http_user else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport {{ default_http_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_http_user) if iptables_http_user else '' }} -j ACCEPT
       -A INPUT -p tcp --sport {{ default_http_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --dport {{ default_https_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_https_users) if iptables_https_users else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p tcp --dport {{ default_https_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_https_users) if iptables_https_users else '' }} -j ACCEPT
+      -A OUTPUT -p tcp --dport {{ default_https_port }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_https_user) if iptables_https_user else '' }} -j {{ log_chain_output_accept }}
+      -A OUTPUT -p tcp --dport {{ default_https_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_https_user) if iptables_https_user else '' }} -j ACCEPT
       -A INPUT -p tcp --sport {{ default_https_port }} -m state --state ESTABLISHED -j ACCEPT
   when: iptables_allow_updates | bool
   notify: Persist rules
@@ -24,7 +24,7 @@
     rules: |
       -A INPUT -p udp --dport {{ iptables_dns_inbound_port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p udp --dport {{ iptables_dns_inbound_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p udp --sport {{ iptables_dns_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_dns_users) if iptables_dns_users else '' }} -j ACCEPT
+      -A OUTPUT -p udp --sport {{ iptables_dns_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_dns_user) if iptables_dns_user else '' }} -j ACCEPT
   when: iptables_allow_dns_inbound | bool
   notify: Persist rules
 
@@ -35,7 +35,7 @@
     rules: |
       -A INPUT -p tcp --dport {{ iptables_http_inbound_port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p tcp --dport {{ iptables_http_inbound_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --sport {{ iptables_http_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_http_users) if iptables_http_users else '' }} -j ACCEPT
+      -A OUTPUT -p tcp --sport {{ iptables_http_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_http_user) if iptables_http_user else '' }} -j ACCEPT
   when: iptables_allow_http_inbound | bool
   notify: Persist rules
 
@@ -46,6 +46,6 @@
     rules: |
       -A INPUT -p tcp --dport {{ iptables_https_inbound_port }} -m state --state NEW -j {{ log_chain_input_accept }}
       -A INPUT -p tcp --dport {{ iptables_https_inbound_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --sport {{ iptables_https_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_https_users) if iptables_https_users else '' }} -j ACCEPT
+      -A OUTPUT -p tcp --sport {{ iptables_https_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_https_user) if iptables_https_user else '' }} -j ACCEPT
   when: iptables_allow_https_inbound | bool
   notify: Persist rules
