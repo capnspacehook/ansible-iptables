@@ -5,14 +5,19 @@ log_chain_output_drop: LOG_OUTPUT_DROP
 log_chain_input_accept: LOG_INPUT_ACCEPT
 log_chain_output_accept: LOG_OUTPUT_ACCEPT
 
+ipset_whitelist: whitelist
+ipset_blacklist: blacklist
+ipset_banned: banned_hosts
+ipset_bogons: bogons
+
 default_dns_port: 53
 default_http_port: 80
 default_https_port: 443
 
 ban_chain: BANNED
 ping_chain: PING_OF_DEATH
+
 iptables_death_ping_hashtable: t_PING_OF_DEATH
 iptables_suspicious_hashtable: t_SUSPICIOUS
-ipset_banned: banned_hosts
-ipset_bogons: bogons
+
 bogon_list_url: "https://www.team-cymru.org/Services/Bogons/bogon-bn-nonagg.txt"

@@ -1,0 +1,41 @@
+---
+
+- name: Create ipset for whitelisted hosts/ranges
+  command: "ipset create {{ ipset_whitelist }} hash:net family inet -exist"
+  when: iptables_whitelist | length > 0
+
+- name: Add whitelisted hosts/ranges to ipset
+  command: "ipset add {{ ipset_whitelist }} {{ item }} -exist"
+  loop: "{{ iptables_whitelist }}"
+  when: iptables_whitelist | length > 0
+
+- name: Firewall rule - allow whitelisted hosts/ranges
+  iptables_raw:
+    name: whitelist
+    weight: 5
+    rules: |
+      -A INPUT -m set --match-set {{ ipset_whitelist }} src -m state --state NEW -j {{ log_chain_input_accept }}
+      -A INPUT -m set --match-set {{ ipset_whitelist }} src -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -m state --state NEW -j {{ log_chain_output_accept }}
+      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -m state --state ESTABLISHED -j ACCEPT
+  when: iptables_whitelist | length > 0
+  notify: Persist rules
+
+- name: Create ipset for blacklisted hosts/ranges
+  command: "ipset create {{ ipset_blacklist }} hash:net family inet -exist"
+  when: iptables_blacklist | length > 0
+
+- name: Add blacklisted hosts/ranges to ipset
+  command: "ipset add {{ ipset_blacklist }} {{ item }} -exist"
+  when: iptables_blacklist | length > 0
+  loop: "{{ iptables_blacklist }}"
+
+- name: Firewall rule - allow blacklisted hosts/ranges
+  iptables_raw:
+    name: blacklist
+    weight: 5
+    rules: |
+      -A INPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_input_drop }}
+      -A OUTPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_output_drop }}
+  when: iptables_blacklist | length > 0
+  notify: Persist rules

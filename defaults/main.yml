@@ -6,6 +6,9 @@ ipset_destroy_sets: true
 iptables_log_limit: 5/min
 iptables_log_level: info
 
+iptables_whitelist: []
+iptables_blacklist: []
+
 iptables_ban_hosts: true
 iptables_ban_interval: 5/hour
 iptables_ban_burst: 5

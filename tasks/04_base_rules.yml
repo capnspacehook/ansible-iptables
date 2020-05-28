@@ -12,10 +12,17 @@
 - name: Firewall rule - block invalid traffic
   iptables_raw:
     name: block_invalid
-    weight: 10
+    weight: 1
     rules: |
       -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
       -A OUTPUT -m state --state INVALID -j {{ log_chain_output_drop }}
+  notify: Persist rules
+
+- name: Firewall rule - block invalid traffic to/from the box's IP
+  iptables_raw:
+    name: block_local_ip_spoof
+    weight: 10
+    rules: |
       -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
       -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_output_drop }}
   notify: Persist rules

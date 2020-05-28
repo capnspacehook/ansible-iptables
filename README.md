@@ -30,6 +30,8 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`ipset_destroy_sets`|true|true if you want to destroy all previously created `ipset` sets|
 |`iptables_log_limit`|5/min|amount of log messages from `iptables` that will be printed. Useful for supressing multiple logs of similar events|
 |`iptables_log_level`|info|level at which `iptables` will log|
+|`iptables_whitelist`|[]|IPs or ranges to always allow|
+|`iptables_blacklist`|[]|IPs or ranges to always block|
 |`iptables_ban_hosts`|true|if true, rules will be created that automatically ban hosts that trigger a threshold of DROP rules within a timeframe|
 |`iptables_ban_interval`|5/hour|amount of DROP rules a host can hit within a timeframe that will trigger a ban|
 |`iptables_ban_burst`|5|the number of initial packets to allow before starting to match on the ban interval|
