@@ -5,9 +5,8 @@
     name: allow-ssh-inbound
     weight: 30
     rules: |
-      -A INPUT -p tcp --dport {{ iptables_ssh_inbound_port }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A INPUT -p tcp --dport {{ iptables_ssh_inbound_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p tcp --sport {{ iptables_ssh_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j ACCEPT
+      -A INPUT -p tcp --dport {{ iptables_ssh_inbound_port }} -j {{ inbound_allow_chain }}
+      -A OUTPUT -p tcp --sport {{ iptables_ssh_inbound_port }} -m state --state ESTABLISHED,RELATED {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j ACCEPT
   when: iptables_allow_ssh_inbound | bool
   notify: Persist rules
 
@@ -16,9 +15,8 @@
     name: allow-ssh-outbound
     weight: 30
     rules: |
-      -A OUTPUT -p tcp --dport {{ item }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p tcp --dport {{ item }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j ACCEPT
-      -A INPUT -p tcp --sport {{ item }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p tcp --dport {{ item }} {{ ('-m owner --uid-owner '~iptables_ssh_user) if iptables_ssh_user else '' }} -j {{ outbound_allow_chain }}
+      -A INPUT -p tcp --sport {{ item }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   loop: "{{ iptables_ssh_outbound_ports }}"
   when: iptables_allow_ssh_outbound | bool
   notify: Persist rules

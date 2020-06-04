@@ -5,9 +5,8 @@
     name: allow-ntp-outbound
     weight: 40
     rules: |
-      -A OUTPUT -p udp --dport {{ item }} -m state --state NEW {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p udp --dport {{ item }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
-      -A INPUT -p udp --sport {{ item }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p udp --dport {{ item }} {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j {{ outbound_allow_chain }}
+      -A INPUT -p udp --sport {{ item }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   loop: "{{ iptables_ntp_outbound_ports }}"
   when: iptables_allow_ntp_outbound | bool
   notify: Persist rules
@@ -17,8 +16,7 @@
     name: allow-ntp-inbound
     weight: 40
     rules: |
-      -A INPUT -p udp --dport {{ iptables_ntp_inbound_port }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A INPUT -p udp --dport {{ iptables_ntp_inbound_port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p udp --sport {{ iptables_ntp_inbound_port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
+      -A INPUT -p udp --dport {{ iptables_ntp_inbound_port }} -j {{ inbound_allow_chain }}
+      -A OUTPUT -p udp --sport {{ iptables_ntp_inbound_port }} -m state --state ESTABLISHED,RELATED {{ ('-m owner --uid-owner '~iptables_ntp_user) if iptables_ntp_user else '' }} -j ACCEPT
   when: iptables_allow_ntp_inbound | bool
   notify: Persist rules

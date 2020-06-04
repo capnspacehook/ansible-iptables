@@ -9,7 +9,7 @@
 - name: Add bogons to ipset
   command: "ipset add {{ ipset_bogons }} {{ item }}"
   register: ipset_out
-  changed_when: | 
+  changed_when: |
     "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr

@@ -5,9 +5,8 @@
     name: "user_allow_inbound_{{ item.name if (item.name is defined and item.name) else item.port }}"
     weight: 23
     rules: |
-      -A INPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A INPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j ACCEPT
+      -A INPUT -p {{ item.proto }} --dport {{ item.port }} -j {{ inbound_allow_chain }}
+      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j ACCEPT
   loop: "{{ iptables_allow_inbound }}"
   notify: Persist rules
 
@@ -16,8 +15,7 @@
     name: "user_allow_outbound_{{ item.name if (item.name is defined and item.name) else item.port }}"
     weight: 26
     rules: |
-      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state NEW {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j {{ log_chain_output_accept }}
-      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} -m state --state ESTABLISHED {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j ACCEPT
-      -A INPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED -j ACCEPT
+      -A OUTPUT -p {{ item.proto }} --dport {{ item.port }} {{ ('-m owner --uid-owner '~item.user) if (item.user is defined and item.user) else '' }} -j {{ outbound_allow_chain }}
+      -A INPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   loop: "{{ iptables_allow_outbound }}"
   notify: Persist rules

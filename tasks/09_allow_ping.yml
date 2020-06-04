@@ -6,7 +6,7 @@
     weight: 60
     rules: |
       -N {{ ping_chain }}
-      -A {{ ping_chain }} -p icmp --icmp-type echo-request -m hashlimit --hashlimit 1/s --hashlimit-burst 3 --hashlimit-htable-expire 300000 --hashlimit-mode srcip --hashlimit-name {{ iptables_death_ping_hashtable }} -j {{ log_chain_input_accept }}
+      -A {{ ping_chain }} -m hashlimit --hashlimit 1/s --hashlimit-burst 3 --hashlimit-htable-expire 300000 --hashlimit-mode srcip --hashlimit-name {{ iptables_death_ping_hashtable }} -j {{ log_chain_input_accept }}
       -A {{ ping_chain }} -j {{ log_chain_input_drop }}
       -A INPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j {{ ping_chain }}
       -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT

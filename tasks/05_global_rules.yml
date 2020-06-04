@@ -10,7 +10,7 @@
 - name: Add whitelisted hosts/ranges to ipset
   command: "ipset add {{ ipset_whitelist }} {{ item }}"
   register: ipset_out
-  changed_when: | 
+  changed_when: |
     "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
@@ -22,10 +22,8 @@
     name: whitelist
     weight: 5
     rules: |
-      -A INPUT -m set --match-set {{ ipset_whitelist }} src -m state --state NEW -j {{ log_chain_input_accept }}
-      -A INPUT -m set --match-set {{ ipset_whitelist }} src -m state --state ESTABLISHED -j ACCEPT
-      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -m state --state NEW -j {{ log_chain_output_accept }}
-      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -m state --state ESTABLISHED -j ACCEPT
+      -A INPUT -m set --match-set {{ ipset_whitelist }} src -j {{ inbound_allow_chain }}
+      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -j {{ outbound_allow_chain }}
   when: iptables_whitelist | length > 0
   notify: Persist rules
 
@@ -39,7 +37,7 @@
 - name: Add blacklisted hosts/ranges to ipset
   command: "ipset add {{ ipset_blacklist }} {{ item }}"
   register: ipset_out
-  changed_when: | 
+  changed_when: |
     "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
