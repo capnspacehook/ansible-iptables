@@ -1,11 +1,20 @@
 ---
 
 - name: Create ipset for bogons
-  command: "ipset create {{ ipset_bogons }} hash:net family inet -exist"
+  command: "ipset create {{ ipset_bogons }} hash:net family inet"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
 
 - name: Add bogons to ipset
-  command: "ipset add {{ ipset_bogons }} {{ item }} -exist"
+  command: "ipset add {{ ipset_bogons }} {{ item }}"
+  register: ipset_out
+  changed_when: | 
+    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  failed_when: |
+    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
+
 
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:

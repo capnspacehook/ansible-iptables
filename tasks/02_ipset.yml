@@ -3,7 +3,7 @@
 - name: Install ipset
   package:
     name: ipset
-    state: latest
+    state: present
 
 - name: Clear ipset rules
   command: ipset destroy

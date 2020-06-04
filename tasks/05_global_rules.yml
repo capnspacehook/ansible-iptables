@@ -1,11 +1,19 @@
 ---
 
 - name: Create ipset for whitelisted hosts/ranges
-  command: "ipset create {{ ipset_whitelist }} hash:net family inet -exist"
+  command: "ipset create {{ ipset_whitelist }} hash:net family inet"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
   when: iptables_whitelist | length > 0
 
 - name: Add whitelisted hosts/ranges to ipset
-  command: "ipset add {{ ipset_whitelist }} {{ item }} -exist"
+  command: "ipset add {{ ipset_whitelist }} {{ item }}"
+  register: ipset_out
+  changed_when: | 
+    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  failed_when: |
+    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ iptables_whitelist }}"
   when: iptables_whitelist | length > 0
 
@@ -22,11 +30,19 @@
   notify: Persist rules
 
 - name: Create ipset for blacklisted hosts/ranges
-  command: "ipset create {{ ipset_blacklist }} hash:net family inet -exist"
+  command: "ipset create {{ ipset_blacklist }} hash:net family inet"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
   when: iptables_blacklist | length > 0
 
 - name: Add blacklisted hosts/ranges to ipset
-  command: "ipset add {{ ipset_blacklist }} {{ item }} -exist"
+  command: "ipset add {{ ipset_blacklist }} {{ item }}"
+  register: ipset_out
+  changed_when: | 
+    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  failed_when: |
+    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   when: iptables_blacklist | length > 0
   loop: "{{ iptables_blacklist }}"
 

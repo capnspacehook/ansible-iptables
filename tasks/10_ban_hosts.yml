@@ -1,7 +1,10 @@
 ---
 
 - name: Create ipset for banned hosts
-  command: "ipset create {{ ipset_banned }} hash:ip family inet timeout {{ iptables_ban_duration }} -exist"
+  command: "ipset create {{ ipset_banned }} hash:ip family inet timeout {{ iptables_ban_duration }}"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
 
 - name: Firewall rule - ban hosts that do not match rules
   iptables_raw:

@@ -3,12 +3,12 @@
 - name: Install iptables
   package:
     name: iptables
-    state: latest
+    state: present
 
 - name: Install package to persist iptables rules
   package:
     name: "{{ iptables_save_package }}"
-    state: latest
+    state: present
 
 - name: Flush existing firewall rules
   shell: >
