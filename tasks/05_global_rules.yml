@@ -22,8 +22,8 @@
     name: whitelist
     weight: 5
     rules: |
-      -A INPUT -m set --match-set {{ ipset_whitelist }} src -j {{ inbound_allow_chain }}
-      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -j {{ outbound_allow_chain }}
+      -A INPUT -m set --match-set {{ ipset_whitelist }} src -j {{ inbound_accept_chain }}
+      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -j {{ outbound_accept_chain }}
   when: iptables_whitelist | length > 0
   notify: Persist rules
 

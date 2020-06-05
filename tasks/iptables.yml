@@ -13,8 +13,8 @@
   tags: ipset
   when: iptables_ban_hosts or iptables_block_bogons or (iptables_whitelist | length > 0) or (iptables_blacklist | length > 0)
 
-- import_tasks: 03_allow_ssh.yml
-  tags: allow_ssh
+- import_tasks: 03_allow_services.yml
+  tags: allow_services
 
 - import_tasks: 04_base_rules.yml
   tags: base_rules
@@ -26,22 +26,16 @@
 - import_tasks: 06_block_attacks.yml
   tags: block_attacks
 
-- import_tasks: 07_allow_ntp.yml
-  tags: allow_ntp
-
-- import_tasks: 08_allow_updates.yml
-  tags: allow_updates
-
-- import_tasks: 09_allow_ping.yml
+- import_tasks: 07_allow_ping.yml
   tags: allow_ping
 
-- import_tasks: 10_ban_hosts.yml
+- import_tasks: 08_ban_hosts.yml
   tags: ban_hosts
   when: iptables_ban_hosts | bool
 
-- import_tasks: 11_bogons.yml
+- import_tasks: 09_bogons.yml
   tags: bogons
   when: iptables_block_bogons | bool
 
-- import_tasks: 12_user_rules.yml
+- import_tasks: 10_user_rules.yml
   tags: user_rules

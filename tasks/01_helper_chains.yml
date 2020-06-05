@@ -32,10 +32,10 @@
     name: helper_chains
     weight: 3
     rules: |
-      -N {{ inbound_allow_chain }}
-      -A {{ inbound_allow_chain }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A {{ inbound_allow_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -N {{ outbound_allow_chain }}
-      -A {{ outbound_allow_chain }} -m state --state NEW -j {{ log_chain_output_accept }}
-      -A {{ outbound_allow_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -N {{ inbound_accept_chain }}
+      -A {{ inbound_accept_chain }} -m state --state NEW -j {{ log_chain_input_accept }}
+      -A {{ inbound_accept_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -N {{ outbound_accept_chain }}
+      -A {{ outbound_accept_chain }} -m state --state NEW -j {{ log_chain_output_accept }}
+      -A {{ outbound_accept_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   notify: Persist rules

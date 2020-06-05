@@ -1,0 +1,56 @@
+---
+
+- name: Firewall rule - create ping chain
+  iptables_raw:
+    name: create-ping-chains
+    weight: 60
+    rules: |
+      -N {{ ping_log_chain }}
+  when: iptables_ping_users | length > 0
+  notify: Persist rules
+
+- name: Set ping chain if ping user filtering is disabled
+  set_fact:
+    ping_log_chain: "{{ log_chain_output_accept }}"
+  when: iptables_ping_users | length == 0
+
+- name: Firewall rule - filter outbound ping traffic by user
+  iptables_raw:
+    name: "filter-ping-outbound-{{ item }}"
+    weight: 60
+    rules: |
+      -A {{ ping_log_chain }} -m owner --uid-owner {{ item }} -j {{ log_chain_output_accept }}
+  loop: "{{ iptables_ping_users }}"
+  notify: Persist rules
+
+- name: Firewall rule - allow TCP to close connections
+  iptables_raw:
+    name: allow-ping-closed
+    weight: 60
+    rules: |
+      -A {{ ping_log_chain }} -m owner ! --socket-exists -j {{ log_chain_output_accept }}
+  when: iptables_ping_users | length > 0
+  notify: Persist rules
+
+- name: Firewall rule - allow ping inbound and block ping of death
+  iptables_raw:
+    name: allow_ping_inbound
+    weight: 60
+    rules: |
+      -N {{ ping_limit_chain }}
+      -A {{ ping_limit_chain }} -m hashlimit --hashlimit 1/s --hashlimit-burst 3 --hashlimit-htable-expire 300000 --hashlimit-mode srcip --hashlimit-name {{ iptables_death_ping_hashtable }} -j {{ log_chain_input_accept }}
+      -A {{ ping_limit_chain }} -j {{ log_chain_input_drop }}
+      -A INPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED -j {{ ping_limit_chain }}
+      -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
+  when: iptables_allow_ping_inbound | bool
+  notify: Persist rules
+
+- name: Firewall rule - allow ping outbound
+  iptables_raw:
+    name: allow_ping_outbound
+    weight: 60
+    rules: |
+      -A OUTPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED,RELATED  -j {{ ping_log_chain }}
+      -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j ACCEPT
+  when: iptables_allow_ping_outbound | bool
+  notify: Persist rules
