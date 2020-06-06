@@ -41,6 +41,7 @@ iptables_https_users: []
 iptables_allow_ping_inbound: true
 iptables_allow_ping_outbound: false
 iptables_ping_users: [root]
+iptables_filter_icmp: true
 
 iptables_block_bogons: true
 

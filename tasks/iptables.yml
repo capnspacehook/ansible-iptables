@@ -26,8 +26,8 @@
 - import_tasks: 06_block_attacks.yml
   tags: block_attacks
 
-- import_tasks: 07_allow_ping.yml
-  tags: allow_ping
+- import_tasks: 07_filter_icmp.yml
+  tags: filter_icmp
 
 - import_tasks: 08_ban_hosts.yml
   tags: ban_hosts

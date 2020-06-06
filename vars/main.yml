@@ -22,8 +22,12 @@ default_http_port: 80
 default_https_port: 443
 
 ban_chain: BANNED
-ping_log_chain: PING_LOG
-ping_limit_chain: PING_OF_DEATH
+icmp_filter_inbound_chain: ICMP_INPUT_FILTER
+icmp_filter_outbound_chain: ICMP_OUTPUT_FILTER
+ping_filter_user: PING_FILTER_USER
+ping_filter_size_inbound_chain: PING_INPUT_FILTER_SIZE
+ping_filter_size_outbound_chain: PING_OUTPUT_FILTER_SIZE
+ping_ratelimit_chain: PING_RATELIMIT
 
 iptables_death_ping_hashtable: t_PING_OF_DEATH
 iptables_suspicious_hashtable: t_SUSPICIOUS

@@ -60,6 +60,7 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_allow_ping_inbound`|true|true if you want to make your box pingable|
 |`iptables_allow_ping_outbound`|false|true if you want to ping other boxes|
 |`iptables_ping_users`|root|users to allow sending ICMP echo-requests outbound|
+|`iptables_filter_icmp`|true|true if you want to block deprecated ICMP messages|
 |`iptables_block_bogons`|true|true if you want to block all traffic involving bogons/martians|
 |`iptables_allow_inbound`|[]|additional ports to allow inbound|
 |`iptables_allow_outbound`|[]|additional ports to allow outbound|
