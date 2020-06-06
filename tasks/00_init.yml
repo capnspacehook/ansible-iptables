@@ -23,7 +23,7 @@
 - name: Initialize iptables ban chain
   iptables_raw:
     name: create_ban_chain
-    weight: 2
+    weight: 0
     rules: |
       -N {{ ban_chain }}
   when: iptables_ban_hosts | bool

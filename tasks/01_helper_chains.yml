@@ -3,7 +3,7 @@
 - name: Firewall rule - create default logging chains
   iptables_raw:
     name: "{{ item.rule_name }}"
-    weight: 3
+    weight: 0
     rules: |
       -N {{ item.chain_name }}
       -A {{ item.chain_name }} -m limit --limit {{ iptables_log_limit }} -j LOG --log-prefix {{ item.prefix }} --log-level {{ iptables_log_level }} --log-uid
@@ -30,7 +30,7 @@
 - name: Firewall rule - create helper chains
   iptables_raw:
     name: helper_chains
-    weight: 3
+    weight: 0
     rules: |
       -N {{ inbound_accept_chain }}
       -A {{ inbound_accept_chain }} -m state --state NEW -j {{ log_chain_input_accept }}

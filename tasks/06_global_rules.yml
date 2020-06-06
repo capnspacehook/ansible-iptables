@@ -20,10 +20,10 @@
 - name: Firewall rule - allow whitelisted hosts/ranges
   iptables_raw:
     name: whitelist
-    weight: 5
+    weight: 15
     rules: |
-      -A INPUT -m set --match-set {{ ipset_whitelist }} src -j {{ inbound_accept_chain }}
-      -A OUTPUT -m set --match-set {{ ipset_whitelist }} dst -j {{ outbound_accept_chain }}
+      -A INPUT -m set ! --match-set {{ ipset_whitelist }} src -j {{ log_chain_input_drop }}
+      -A OUTPUT -m set ! --match-set {{ ipset_whitelist }} dst -j {{ log_chain_output_drop }}
   when: iptables_whitelist | length > 0
   notify: Persist rules
 
@@ -47,7 +47,7 @@
 - name: Firewall rule - allow blacklisted hosts/ranges
   iptables_raw:
     name: blacklist
-    weight: 5
+    weight: 15
     rules: |
       -A INPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_input_drop }}
       -A OUTPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_output_drop }}

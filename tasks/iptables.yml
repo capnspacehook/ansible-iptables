@@ -19,12 +19,13 @@
 - import_tasks: 04_base_rules.yml
   tags: base_rules
 
-- import_tasks: 05_global_rules.yml
+- import_tasks: 05_block_attacks.yml
+  tags: block_attacks
+  when: iptables_block_attacks | bool
+
+- import_tasks: 06_global_rules.yml
   tags: global_rules
   when: (iptables_whitelist | length > 0) or (iptables_blacklist | length > 0)
-
-- import_tasks: 06_block_attacks.yml
-  tags: block_attacks
 
 - import_tasks: 07_filter_icmp.yml
   tags: filter_icmp

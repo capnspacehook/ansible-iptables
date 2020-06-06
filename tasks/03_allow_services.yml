@@ -12,7 +12,7 @@
         outbound_ports: "{{ iptables_ssh_outbound_ports }}"
         users: "{{ iptables_ssh_users }}"
       - name: ntp
-        weight: 40
+        weight: 35
         proto: udp
         allow_inbound: "{{ iptables_allow_ntp_inbound | bool }}"
         inbound_port: "{{ iptables_ntp_inbound_port }}"
@@ -20,7 +20,7 @@
         outbound_ports: "{{ iptables_ntp_outbound_ports }}"
         users: "{{ iptables_ntp_users }}"
       - name: dns
-        weight: 50
+        weight: 40
         proto: udp
         allow_inbound: "{{ iptables_allow_dns_inbound | bool }}"
         inbound_port: "{{ iptables_dns_inbound_port }}"
@@ -28,7 +28,7 @@
         outbound_ports: ["{{ default_dns_port }}"]
         users: "{{ iptables_dns_users }}"
       - name: http
-        weight: 50
+        weight: 45
         proto: tcp
         allow_inbound: "{{ iptables_allow_http_inbound | bool }}"
         inbound_port: "{{ iptables_http_inbound_port }}"

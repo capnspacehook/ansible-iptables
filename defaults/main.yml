@@ -6,6 +6,8 @@ ipset_destroy_sets: true
 iptables_log_limit: 5/min
 iptables_log_level: info
 
+iptables_block_attacks: true
+
 iptables_whitelist: []
 iptables_blacklist: []
 

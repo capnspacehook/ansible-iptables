@@ -15,11 +15,10 @@
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
 
-
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:
     name: block_bogons
-    weight: 15
+    weight: 17
     rules: |
       -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_input_drop }}
       -A OUTPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_output_drop }}
