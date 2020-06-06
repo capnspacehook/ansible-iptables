@@ -25,7 +25,7 @@
 
 - name: Firewall rule - ratelimit incoming ICMP echo requests
   iptables_raw:
-    name: ratelimit_inbound_ping
+    name: ratelimit-inbound-ping
     weight: 60
     rules: |
       -N {{ ping_ratelimit_chain }}
@@ -35,7 +35,7 @@
 
 - name: Firewall rule - filter ICMP echo requests and replies by packet size
   iptables_raw:
-    name: filter_ping_size
+    name: filter-ping-size
     weight: 60
     rules: |
       -N {{ ping_filter_size_inbound_chain }}
@@ -47,7 +47,7 @@
 
 - name: Firewall rule - allow ping inbound
   iptables_raw:
-    name: allow_ping_inbound
+    name: allow-ping-inbound
     weight: 60
     rules: |
       -A INPUT -p icmp --icmp-type echo-request -j {{ ping_filter_size_inbound_chain }}
@@ -57,7 +57,7 @@
 
 - name: Firewall rule - allow ping outbound
   iptables_raw:
-    name: allow_ping_outbound
+    name: allow-ping-outbound
     weight: 60
     rules: |
       -A OUTPUT -p icmp --icmp-type echo-request -j {{ ping_filter_size_outbound_chain }}

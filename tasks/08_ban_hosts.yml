@@ -8,7 +8,7 @@
 
 - name: Firewall rule - ban hosts that do not match rules
   iptables_raw:
-    name: ban_chain
+    name: ban-chain
     weight: 0
     rules: |
       -A {{ ban_chain }} -m hashlimit --hashlimit-above {{ iptables_ban_interval }} --hashlimit-burst {{ iptables_ban_burst }} --hashlimit-htable-expire {{ iptables_ban_expire }} --hashlimit-mode srcip --hashlimit-name {{ iptables_suspicious_hashtable }} -j SET --add-set {{ ipset_banned }} src
@@ -17,7 +17,7 @@
 
 - name: Firewall rule - drop banned traffic
   iptables_raw:
-    name: drop_banned
+    name: drop-banned
     weight: 16
     rules: |
       -A INPUT -m set --match-set {{ ipset_banned }} src -j {{ log_chain_input_drop }}

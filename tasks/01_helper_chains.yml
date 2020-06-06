@@ -9,19 +9,19 @@
       -A {{ item.chain_name }} -m limit --limit {{ iptables_log_limit }} -j LOG --log-prefix {{ item.prefix }} --log-level {{ iptables_log_level }} --log-uid
       -A {{ item.chain_name }} -j {{ item.action }}
   loop:
-    - rule_name: logging_input_drop_chain
+    - rule_name: logging-input-drop-chain
       chain_name: "{{ log_chain_input_drop }}"
       prefix: "INPUT:DROP:"
       action: DROP
-    - rule_name: logging_output_drop_chain
+    - rule_name: logging-output-drop-chain
       chain_name: "{{ log_chain_output_drop }}"
       prefix: "OUTPUT:DROP:"
       action: DROP
-    - rule_name: logging_input_accept_chain
+    - rule_name: logging-input-accept-chain
       chain_name: "{{ log_chain_input_accept }}"
       prefix: "INPUT:ACCEPT:"
       action: ACCEPT
-    - rule_name: logging_output_accept_chain
+    - rule_name: logging-output-accept-chain
       chain_name: "{{ log_chain_output_accept }}"
       prefix: "OUTPUT:ACCEPT:"
       action: ACCEPT
@@ -29,7 +29,7 @@
 
 - name: Firewall rule - create helper chains
   iptables_raw:
-    name: helper_chains
+    name: helper-chains
     weight: 0
     rules: |
       -N {{ inbound_accept_chain }}

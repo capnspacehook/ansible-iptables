@@ -2,7 +2,7 @@
 
 - name: Firewall rule - allow loopback traffic
   iptables_raw:
-    name: allow_loopback
+    name: allow-loopback
     weight: 5
     rules: |
       -A INPUT -i lo -j ACCEPT
@@ -11,7 +11,7 @@
 
 - name: Firewall rule - block invalid traffic
   iptables_raw:
-    name: block_invalid
+    name: block-invalid
     weight: 5
     rules: |
       -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
@@ -20,7 +20,7 @@
 
 - name: Firewall rule - block invalid traffic to/from the box's IP
   iptables_raw:
-    name: block_local_ip_spoof
+    name: block-local_ip_spoof
     weight: 5
     rules: |
       -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
@@ -29,7 +29,7 @@
 
 - name: Firewall rule - log dropped packets that fall through
   iptables_raw:
-    name: log_dropped
+    name: log-dropped
     weight: 90
     rules: |
       -A INPUT -j {{ ban_chain }}
@@ -38,7 +38,7 @@
 
 - name: Firewall rule - set default policies
   iptables_raw:
-    name: default_policies
+    name: default-policies
     rules: |
       -P INPUT DROP
       -P FORWARD DROP
@@ -47,7 +47,7 @@
 
 - name: Firewall rule - block all ipv6 traffic
   iptables_raw:
-    name: default_policies
+    name: default-policies
     ipversion: 6
     rules: |
       -P INPUT DROP

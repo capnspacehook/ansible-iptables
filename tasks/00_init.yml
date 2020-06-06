@@ -22,7 +22,7 @@
 
 - name: Initialize iptables ban chain
   iptables_raw:
-    name: create_ban_chain
+    name: create-ban-chain
     weight: 0
     rules: |
       -N {{ ban_chain }}
