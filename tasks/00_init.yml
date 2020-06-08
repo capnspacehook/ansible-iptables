@@ -10,6 +10,11 @@
     name: "{{ iptables_save_package }}"
     state: present
 
+- name: Make iptables persistance service start at boot
+  service:
+    name: "{{ iptables_save_package }}"
+    enabled: true
+
 - name: Flush existing firewall rules
   shell: >
     iptables -P INPUT ACCEPT &&
