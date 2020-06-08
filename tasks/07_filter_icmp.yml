@@ -82,8 +82,8 @@
       -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type address-mask-reply -j {{ ban_chain }}
       -A {{ icmp_filter_inbound_chain }} -j ACCEPT
       -N {{ icmp_filter_outbound_chain }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-request -j {{ ban_chain }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-reply -j {{ ban_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-request -j {{ log_chain_output_drop }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-reply -j {{ log_chain_output_drop }}
       -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type protocol-unreachable -j {{ log_chain_output_drop }}
       -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type source-quench -j {{ log_chain_output_drop }}
       -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type redirect -j {{ log_chain_output_drop }}
