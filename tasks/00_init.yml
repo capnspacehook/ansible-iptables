@@ -12,7 +12,7 @@
 
 - name: Make iptables persistance service start at boot
   service:
-    name: "{{ iptables_save_package }}"
+    name: "{{ iptables_save_service }}"
     enabled: true
 
 - name: Flush existing firewall rules
