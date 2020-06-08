@@ -40,7 +40,7 @@
     rules: |
       -A {{ current_log_chain }} -m owner ! --socket-exists -j ACCEPT
       -A {{ current_accept_chain }} -m owner ! --socket-exists -j ACCEPT
-  when: item.users | length > 0
+  when: (item.users | length > 0) and (item.proto | lower == 'tcp')
   notify: Persist rules
 
 - name: "Firewall rule - allow {{ item.name }} inbound"
