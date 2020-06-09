@@ -37,6 +37,7 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_ban_burst`|5|the number of initial packets to allow before starting to match on the ban interval|
 |`iptables_ban_expire`|10800000|amount of milliseconds to remember hosts that triggered DROP rules|
 |`iptables_ban_duration`|600|amount of seconds to ban offending hosts|
+|`iptables_block_attacks`|true|true if you want to block invalid and portscanning TCP packets|
 |`iptables_allow_ssh_inbound`|true|true if you want to allow SSH inbound|
 |`iptables_ssh_inbound_port`|22|port to allow SSH inbound on|
 |`iptables_allow_ssh_outbound`|false|true if you want to allow SSH outbound|
