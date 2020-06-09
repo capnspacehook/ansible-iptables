@@ -8,7 +8,7 @@
 - name: "Firewall rule - create {{ item.name }} chains"
   iptables_raw:
     name: "create-{{ item.name }}-chains"
-    weight: " {{ item.weight }}"
+    weight: "{{ item.weight }}"
     rules: |
       -N {{ current_log_chain }}
       -N {{ current_accept_chain }}
@@ -24,7 +24,7 @@
 - name: "Firewall rule - filter outbound {{ item.name }} traffic by user"
   iptables_raw:
     name: "filter-{{ item.name }}-outbound-{{ user }}"
-    weight: " {{ item.weight }}"
+    weight: "{{ item.weight }}"
     rules: |
       -A {{ current_log_chain }} -m owner --uid-owner {{ user }} -j {{ outbound_accept_chain }}
       -A {{ current_accept_chain }} -m owner --uid-owner {{ user }} -j ACCEPT
@@ -36,7 +36,7 @@
 - name: Firewall rule - allow TCP to close connections
   iptables_raw:
     name: "allow-{{ item.name }}-closed"
-    weight: " {{ item.weight }}"
+    weight: "{{ item.weight }}"
     rules: |
       -A {{ current_log_chain }} -m owner ! --socket-exists -j ACCEPT
       -A {{ current_accept_chain }} -m owner ! --socket-exists -j ACCEPT
@@ -46,7 +46,7 @@
 - name: "Firewall rule - allow {{ item.name }} inbound"
   iptables_raw:
     name: "allow-{{ item.name }}-inbound"
-    weight: " {{ item.weight }}"
+    weight: "{{ item.weight }}"
     rules: |
       -A INPUT -p {{ item.proto }} --dport {{ item.inbound_port }} -j {{ inbound_accept_chain }}
       -A OUTPUT -p {{ item.proto }} --sport {{ item.inbound_port }} -m state --state ESTABLISHED,RELATED -j {{ current_accept_chain }}
@@ -56,7 +56,7 @@
 - name: "Firewall rule - allow {{ item.name }} outbound"
   iptables_raw:
     name: "allow-{{ item.name }}-outbound-{{ port }}"
-    weight: " {{ item.weight }}"
+    weight: "{{ item.weight }}"
     rules: |
       -A OUTPUT -p {{ item.proto }} --dport {{ port }} -j {{ current_log_chain }}
       -A INPUT -p {{ item.proto }} --sport {{ port }} -m state --state ESTABLISHED,RELATED -j ACCEPT

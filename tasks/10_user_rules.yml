@@ -17,8 +17,8 @@
 
 - name: Initialize list of user outbound allow rules
   set_fact:
-    iptables_allow_outbound: >
-      {{ iptables_allow_outbound|default([]) + [{
+    user_service_outbound_rules: >
+      {{ user_service_outbound_rules|default([]) + [{
         'name': item.name,
         'weight': 25,
         'proto': item.proto,
@@ -37,5 +37,5 @@
 
 - name: Create user outbound allow rules
   include_tasks: service_rules.yml
-  loop: "{{ iptables_allow_outbound }}"
-  when: iptables_allow_outbound | length > 0
+  loop: "{{ user_service_outbound_rules }}"
+  when: user_service_outbound_rules | length > 0
