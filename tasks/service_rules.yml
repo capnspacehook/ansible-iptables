@@ -55,13 +55,10 @@
 
 - name: "Firewall rule - allow {{ item.name }} outbound"
   iptables_raw:
-    name: "allow-{{ item.name }}-outbound-{{ port }}"
+    name: "allow-{{ item.name }}-outbound"
     weight: "{{ item.weight }}"
     rules: |
-      -A OUTPUT -p {{ item.proto }} --dport {{ port }} -j {{ current_log_chain }}
-      -A INPUT -p {{ item.proto }} --sport {{ port }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-  loop: "{{ item.outbound_ports }}"
-  loop_control:
-    loop_var: port
+      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.outbound_ports }} -j {{ current_log_chain }}
+      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.outbound_ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   when: item.allow_outbound | bool
   notify: Persist rules

@@ -20,11 +20,11 @@ iptables_ban_duration: 600
 iptables_allow_ssh_inbound: true
 iptables_ssh_inbound_port: 22
 iptables_allow_ssh_outbound: false
-iptables_ssh_outbound_ports: [22]
+iptables_ssh_outbound_ports: 22
 iptables_ssh_users: [root]
 
 iptables_allow_ntp_outbound: true
-iptables_ntp_outbound_ports: [123]
+iptables_ntp_outbound_ports: 123
 iptables_allow_ntp_inbound: false
 iptables_ntp_inbound_port: 123
 iptables_ntp_users: []
