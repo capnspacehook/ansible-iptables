@@ -24,24 +24,24 @@
         proto: udp
         allow_inbound: "{{ iptables_allow_dns_inbound | bool }}"
         inbound_port: "{{ iptables_dns_inbound_port }}"
-        allow_outbound: "{{ iptables_allow_updates | bool }}"
-        outbound_ports: "{{ default_dns_port }}"
+        allow_outbound: "{{ iptables_allow_dns_outbound | bool }}"
+        outbound_ports: "{{ iptables_dns_outbound_ports }}"
         users: "{{ iptables_dns_users }}"
       - name: http
         weight: 45
         proto: tcp
         allow_inbound: "{{ iptables_allow_http_inbound | bool }}"
         inbound_port: "{{ iptables_http_inbound_port }}"
-        allow_outbound: "{{ iptables_allow_updates | bool }}"
-        outbound_ports: "{{ default_http_port }}"
+        allow_outbound: "{{ iptables_allow_http_outbound | bool }}"
+        outbound_ports: "{{ iptables_http_outbound_ports }}"
         users: "{{ iptables_http_users }}"
       - name: https
         weight: 50
         proto: tcp
         allow_inbound: "{{ iptables_allow_https_inbound | bool }}"
         inbound_port: "{{ iptables_https_inbound_port }}"
-        allow_outbound: "{{ iptables_allow_updates | bool }}"
-        outbound_ports: "{{ default_https_port }}"
+        allow_outbound: "{{ iptables_allow_https_outbound | bool }}"
+        outbound_ports: "{{ iptables_https_outbound_ports }}"
         users: "{{ iptables_https_users }}"
 
 - name: Create default allow rules

@@ -41,22 +41,27 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_allow_ssh_inbound`|true|true if you want to allow SSH inbound|
 |`iptables_ssh_inbound_port`|22|port to allow SSH inbound on|
 |`iptables_allow_ssh_outbound`|false|true if you want to allow SSH outbound|
-|`iptables_ssh_outbound_ports`|[22]|ports you want to allow SSH outbound on|
+|`iptables_ssh_outbound_ports`|22|ports you want to allow SSH outbound on|
 |`iptables_ssh_users`|root|users that owns the SSH daemon and/or that should be able to make SSH connections|
 |`iptables_allow_ntp_outbound`|true|true if you want to allow NTP outbound|
-|`iptables_ntp_outbound_ports`|[123]|ports you want to allow NTP outbound on|
+|`iptables_ntp_outbound_ports`|123|ports you want to allow NTP outbound on|
 |`iptables_allow_ntp_inbound`|false|true if you want to allow NTP inbound|
 |`iptables_ntp_inbound_port`|123|port to allow NTP inbound on|
 |`iptables_ntp_users`|root|users that owns the NTP daemon and/or that should be able to make NTP connections|
-|`iptables_allow_updates`|true|true if you want to allow ports `53 udp`, `80 tcp` and `443 tcp` outbound for package updating|
 |`iptables_allow_dns_inbound`|false|true if you want to allow DNS inbound|
 |`iptables_dns_inbound_port`|53|port to allow DNS inbound on|
+|`iptables_allow_dns_outbound`|true|true if you want to allow DNS outbound|
+|`iptables_dns_outbound_ports`|53|ports you want to allow DNS outbound on|
 |`iptables_dns_users`|root|users that owns the DNS daemon and/or that should be able to make DNS connections|
 |`iptables_allow_http_inbound`|false|true if you want to allow HTTP inbound|
 |`iptables_http_inbound_port`|80|port to allow HTTP inbound on|
+|`iptables_allow_http_outbound`|true|true if you want to allow HTTP outbound|
+|`iptables_http_outbound_ports`|80|ports you want to allow HTTP outbound on|
 |`iptables_http_users`|root|users that owns the HTTP daemon and/or that should be able to make HTTP connections|
 |`iptables_allow_https_inbound`|false|true if you want to allow HTTPS inbound|
-|`iptables_https_inbound_port`|80|port to allow HTTPS inbound on|
+|`iptables_https_inbound_port`|443|port to allow HTTPS inbound on|
+|`iptables_allow_https_outbound`|true|true if you want to allow HTTPS outbound|
+|`iptables_https_outbound_ports`|443|ports you want to allow HTTPS outbound on|
 |`iptables_https_users`|root|users that owns the HTTPS daemon and/or that should be able to make HTTPS connections|
 |`iptables_allow_ping_inbound`|true|true if you want to make your box pingable|
 |`iptables_allow_ping_outbound`|false|true if you want to ping other boxes|

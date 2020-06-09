@@ -29,15 +29,22 @@ iptables_allow_ntp_inbound: false
 iptables_ntp_inbound_port: 123
 iptables_ntp_users: []
 
-iptables_allow_updates: true
 iptables_allow_dns_inbound: false
 iptables_dns_inbound_port: 53
+iptables_allow_dns_outbound: true
+iptables_dns_outbound_ports: 53
 iptables_dns_users: []
+
 iptables_allow_http_inbound: false
 iptables_http_inbound_port: 80
+iptables_allow_http_outbound: true
+iptables_http_outbound_ports: 80
 iptables_http_users: []
+
 iptables_allow_https_inbound: false
 iptables_https_inbound_port: 443
+iptables_allow_https_outbound: true
+iptables_https_outbound_ports: 443
 iptables_https_users: []
 
 iptables_allow_ping_inbound: true
