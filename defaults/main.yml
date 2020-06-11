@@ -11,7 +11,7 @@ iptables_block_attacks: true
 iptables_whitelist: []
 iptables_blacklist: []
 
-iptables_ban_hosts: true
+iptables_ban_hosts: false
 iptables_ban_interval: 5/hour
 iptables_ban_burst: 5
 iptables_ban_expire: 10800000
@@ -47,7 +47,7 @@ iptables_allow_https_outbound: true
 iptables_https_outbound_ports: 443
 iptables_https_users: []
 
-iptables_allow_ping_inbound: true
+iptables_allow_ping_inbound: false
 iptables_allow_ping_outbound: false
 iptables_ping_users: [root]
 iptables_filter_icmp: true
