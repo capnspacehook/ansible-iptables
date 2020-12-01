@@ -1,7 +1,7 @@
 ---
 
-iptables_clear_rules: true
-ipset_destroy_sets: true
+iptables_keep_unmanaged_rules: no
+ipset_destroy_sets: false
 
 iptables_log_limit: 5/min
 iptables_log_level: info

@@ -15,16 +15,6 @@
     name: "{{ iptables_save_service }}"
     enabled: true
 
-- name: Flush existing firewall rules
-  shell: >
-    iptables -P INPUT ACCEPT &&
-    iptables -P FORWARD ACCEPT &&
-    iptables -P OUTPUT ACCEPT &&
-    iptables -F &&
-    iptables -X &&
-    rm -rf /etc/ansible-iptables
-  when: iptables_clear_rules | bool
-
 - name: Initialize iptables ban chain
   iptables_raw:
     name: create-ban-chain

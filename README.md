@@ -25,8 +25,8 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 
 |Name|Default Value|Description|
 |----|-------------|-----------|
-|`iptables_clear_rules`|true|true if you want to flush all previously created rules and chains|
-|`ipset_destroy_sets`|true|true if you want to destroy all previously created `ipset` sets|
+|`iptables_keep_unmanaged_rules`|no|'yes' if you want to flush all rules and chains not managed by this Ansible role|
+|`ipset_destroy_sets`|false|true if you want to destroy all previously created `ipset` sets|
 |`iptables_log_limit`|5/min|amount of log messages from `iptables` that will be printed. Useful for supressing multiple logs of similar events|
 |`iptables_log_level`|info|level at which `iptables` will log|
 |`iptables_whitelist`|[]|IPs or ranges to always allow|

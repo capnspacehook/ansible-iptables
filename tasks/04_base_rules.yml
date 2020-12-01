@@ -39,6 +39,7 @@
 - name: Firewall rule - set default policies
   iptables_raw:
     name: default-policies
+    keep_unmanaged: "{{ iptables_keep_unmanaged_rules }}"
     rules: |
       -P INPUT DROP
       -P FORWARD DROP
@@ -48,6 +49,7 @@
 - name: Firewall rule - block all ipv6 traffic
   iptables_raw:
     name: default-policies
+    keep_unmanaged: "{{ iptables_keep_unmanaged_rules }}"
     ipversion: 6
     rules: |
       -P INPUT DROP
