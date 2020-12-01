@@ -33,7 +33,7 @@
     loop_var: user
   notify: Persist rules
 
-- name: Firewall rule - allow TCP to close connections
+- name: Firewall rule - allow TCP to close connections for {{ item.name }} traffic
   iptables_raw:
     name: "allow-{{ item.name }}-closed"
     weight: "{{ item.weight }}"
