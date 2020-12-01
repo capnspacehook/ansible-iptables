@@ -27,9 +27,7 @@ icmp_filter_outbound_chain: ICMP_OUTPUT_FILTER
 ping_filter_user: PING_FILTER_USER
 ping_filter_size_inbound_chain: PING_INPUT_FILTER_SIZE
 ping_filter_size_outbound_chain: PING_OUTPUT_FILTER_SIZE
-ping_ratelimit_chain: PING_RATELIMIT
 
-iptables_death_ping_hashtable: t_PING_OF_DEATH
 iptables_suspicious_hashtable: t_SUSPICIOUS
 
 bogon_list_url: "https://www.team-cymru.org/Services/Bogons/bogon-bn-nonagg.txt"
