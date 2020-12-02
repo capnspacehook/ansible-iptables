@@ -6,13 +6,13 @@
     weight: 60
     rules: |
       -N {{ ping_filter_user }}
-  when: iptables_ping_users | length > 0
+  when: (iptables_allow_ping_outbound | bool) and (iptables_ping_users | length > 0)
   notify: Persist rules
 
 - name: Set ping chain if ping user filtering is disabled
   set_fact:
     ping_filter_user: "{{ log_chain_output_accept }}"
-  when: iptables_ping_users | length == 0
+  when: (iptables_allow_ping_outbound | bool) and (iptables_ping_users | length == 0)
 
 - name: Firewall rule - filter outbound ping traffic by user
   iptables_raw:
@@ -21,6 +21,7 @@
     rules: |
       -A {{ ping_filter_user }} -m owner --uid-owner {{ item }} -j {{ log_chain_output_accept }}
   loop: "{{ iptables_ping_users }}"
+  when: iptables_allow_ping_outbound | bool
   notify: Persist rules
 
 - name: Firewall rule - filter ICMP echo requests and replies by packet size
@@ -32,7 +33,7 @@
       -A {{ ping_filter_size_inbound_chain }} -m length --length 84 -j {{ log_chain_input_accept }}
       -N {{ ping_filter_size_outbound_chain }}
       -A {{ ping_filter_size_outbound_chain }} -m length --length 84 -j {{ ping_filter_user }}
-  when: iptables_allow_ping_inbound | bool
+  when: (iptables_allow_ping_inbound | bool) or (iptables_allow_ping_outbound | bool)
   notify: Persist rules
 
 - name: Firewall rule - allow ping inbound
