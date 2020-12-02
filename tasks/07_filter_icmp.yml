@@ -16,7 +16,7 @@
 
 - name: Firewall rule - filter outbound ping traffic by user
   iptables_raw:
-    name: "filter-ping-outbound-{{ item }}"
+    name: "filter-ping-outbound-user-{{ item }}"
     weight: 60
     rules: |
       -A {{ ping_filter_user }} -m owner --uid-owner {{ item }} -j {{ log_chain_output_accept }}

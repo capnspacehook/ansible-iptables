@@ -5,8 +5,8 @@ log_chain_output_drop: LOG_OUTPUT_DROP
 log_chain_input_accept: LOG_INPUT_ACCEPT
 log_chain_output_accept: LOG_OUTPUT_ACCEPT
 
-inbound_accept_chain: INPUT_ACCEPT
-outbound_accept_chain: OUTPUT_ACCEPT
+inbound_accept_chain: INPUT_LOG_NEW
+outbound_accept_chain: OUTPUT_LOG_NEW
 
 service_allow_rules: []
 user_service_inbound_rules: []
@@ -16,10 +16,6 @@ ipset_whitelist: global_whitelist
 ipset_blacklist: global_blacklist
 ipset_banned: banned_hosts
 ipset_bogons: bogons
-
-default_dns_port: 53
-default_http_port: 80
-default_https_port: 443
 
 ban_chain: BANNED
 icmp_filter_inbound_chain: ICMP_INPUT_FILTER
