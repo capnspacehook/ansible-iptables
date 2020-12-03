@@ -23,6 +23,7 @@
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
   when: iptables_block_bogons | bool
+  notify: Persist rules
 
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:
