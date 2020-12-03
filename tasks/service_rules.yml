@@ -2,17 +2,25 @@
 
 - name: "Set {{ item.name }} chain names"
   set_fact:
-    current_output_log_chain: "{{ item.name | upper }}_OUTPUT_LOG"
-    current_output_accept_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT"
+    current_output_accept_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT" # used in inbound connections
+    current_output_log_chain: "{{ item.name | upper }}_OUTPUT_LOG" # used in outbound connections
 
-- name: "Firewall rule - create {{ item.name }} chains"
+- name: "Firewall rule - create {{ item.name }} inbound chains"
   iptables_raw:
-    name: "create-{{ item.name }}-chains"
-    state: "{{ ((item.state == 'present') and (item.users | length > 0)) | ternary('present', 'absent') }}"
+    name: "create-{{ item.name }}-inbound-chains"
+    state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -N {{ current_output_accept_chain }}
+  notify: Persist rules
+
+- name: "Firewall rule - create {{ item.name }} outbound chains"
+  iptables_raw:
+    name: "create-{{ item.name }}-outbound-chains"
+    state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -N {{ current_output_log_chain }}
-      -N {{ current_output_accept_chain }}
   notify: Persist rules
 
 - name: "Set {{ item.name }} chains if user filtering is disabled"
@@ -21,27 +29,47 @@
     current_output_accept_chain: ACCEPT
   when: item.users | length == 0
 
-- name: "Firewall rule - filter outbound {{ item.name }} traffic by user"
+- name: "Firewall rule - filter established outbound {{ item.name }} traffic by user"
   iptables_raw:
-    name: "filter-{{ item.name }}-outbound-user-{{ user }}"
-    state: "{{ item.state }}"
+    name: "filter-{{ item.name }}-established-outbound-user-{{ user }}"
+    state: "{{ ((item.state == 'present') and (item.allow_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A {{ current_output_log_chain }} -m owner --uid-owner {{ user }} -j {{ outbound_accept_chain }}
       -A {{ current_output_accept_chain }} -m owner --uid-owner {{ user }} -j ACCEPT
   loop: "{{ item.users }}"
   loop_control:
     loop_var: user
   notify: Persist rules
 
-- name: Firewall rule - allow TCP to close connections for {{ item.name }} traffic
+- name: "Firewall rule - filter new outbound {{ item.name }} traffic by user"
   iptables_raw:
-    name: "allow-{{ item.name }}-closed"
-    state: "{{ ((item.state == 'present') and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
+    name: "filter-{{ item.name }}-new-outbound-user-{{ user }}"
+    state: "{{ ((item.state == 'present') and (item.allow_outbound | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -A {{ current_output_log_chain }} -m owner --uid-owner {{ user }} -j {{ outbound_accept_chain }}
+  loop: "{{ item.users }}"
+  loop_control:
+    loop_var: user
+  notify: Persist rules
+
+- name: Firewall rule - allow TCP to close connections for {{ item.name }} inbound traffic
+  iptables_raw:
+    name: "allow-{{ item.name }}-inbound-closed"
+    state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -A {{ current_output_accept_chain }} -m owner ! --socket-exists -j ACCEPT
+  notify: Persist rules
+
+
+- name: Firewall rule - allow TCP to close connections for {{ item.name }} outbound traffic
+  iptables_raw:
+    name: "allow-{{ item.name }}-outbound-closed"
+    state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -A {{ current_output_log_chain }} -m owner ! --socket-exists -j ACCEPT
-      -A {{ current_output_accept_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
 
 - name: "Firewall rule - allow {{ item.name }} inbound"
