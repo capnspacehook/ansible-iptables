@@ -24,7 +24,7 @@
       -N {{ ban_chain }}
   notify: Persist rules
 
-- name: Set ban chain to log chain if host banning is disabled
+- name: Set ban chain to simply drop if host banning is disabled
   set_fact:
-    ban_chain: "{{ log_chain_input_drop }}"
+    ban_chain: DROP
   when: not iptables_ban_hosts

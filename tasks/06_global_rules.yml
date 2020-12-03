@@ -24,14 +24,30 @@
   loop: "{{ iptables_whitelist }}"
   notify: Persist rules
 
+- name: Firewall rule - create global whitelist logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: global-whitelist-inbound-drop-chain
+      rule_name: logging-global-whitelist-inbound-drop-chain
+      state: "{{ (iptables_whitelist | length > 0) | ternary('present', 'absent') }}"
+      chain_name: "{{ global_whitelist_inbound_log_chain }}"
+      prefix: "WHITELIST:INPUT:DROP:"
+      action: DROP
+    - name: global-whitelist-outbound-drop-chain
+      rule_name: logging-global-whitelist-outbound-drop-chain
+      state: "{{ (iptables_whitelist | length > 0) | ternary('present', 'absent') }}"
+      chain_name: "{{ global_whitelist_outbound_log_chain }}"
+      prefix: "WHITELIST:OUTPUT:DROP:"
+      action: DROP
+
 - name: Firewall rule - allow whitelisted hosts/ranges
   iptables_raw:
     name: global-whitelist
     state: "{{ (iptables_whitelist | length > 0) | ternary('present', 'absent') }}"
     weight: 15
     rules: |
-      -A INPUT -m set ! --match-set {{ ipset_whitelist }} src -j {{ log_chain_input_drop }}
-      -A OUTPUT -m set ! --match-set {{ ipset_whitelist }} dst -j {{ log_chain_output_drop }}
+      -A INPUT -m set ! --match-set {{ ipset_whitelist }} src -j {{ global_whitelist_inbound_log_chain }}
+      -A OUTPUT -m set ! --match-set {{ ipset_whitelist }} dst -j {{ global_whitelist_outbound_log_chain }}
   notify: Persist rules
 
 - name: Create ipset for blacklisted hosts/ranges
@@ -58,12 +74,28 @@
   loop: "{{ iptables_blacklist }}"
   notify: Persist rules
 
+- name: Firewall rule - create global blacklist logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: global-blacklist-inbound-drop-chain
+      rule_name: logging-global-blacklist-inbound-drop-chain
+      state: "{{ (iptables_blacklist | length > 0) | ternary('present', 'absent') }}"
+      chain_name: "{{ global_blacklist_inbound_log_chain }}"
+      prefix: "BLACKLIST:INPUT:DROP:"
+      action: DROP
+    - name: global-blacklist-outbound-drop-chain
+      rule_name: logging-global-blacklist-outbound-drop-chain
+      state: "{{ (iptables_blacklist | length > 0) | ternary('present', 'absent') }}"
+      chain_name: "{{ global_blacklist_outbound_log_chain }}"
+      prefix: "BLACKLIST:OUTPUT:DROP:"
+      action: DROP
+
 - name: Firewall rule - allow blacklisted hosts/ranges
   iptables_raw:
     name: global-blacklist
     state: "{{ (iptables_blacklist | length > 0) | ternary('present', 'absent') }}"
     weight: 15
     rules: |
-      -A INPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_input_drop }}
-      -A OUTPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_output_drop }}
+      -A INPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ global_blacklist_inbound_log_chain }}
+      -A OUTPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ global_blacklist_outbound_log_chain }}
   notify: Persist rules

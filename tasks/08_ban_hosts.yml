@@ -21,8 +21,18 @@
     weight: 0
     rules: |
       -A {{ ban_chain }} -m hashlimit --hashlimit-above {{ iptables_ban_interval }} --hashlimit-burst {{ iptables_ban_burst }} --hashlimit-htable-expire {{ iptables_ban_expire }} --hashlimit-mode srcip --hashlimit-name {{ iptables_suspicious_hashtable }} -j SET --add-set {{ ipset_banned }} src
-      -A {{ ban_chain }} -j {{ log_chain_input_drop }}
+      -A {{ ban_chain }} -j DROP
   notify: Persist rules
+
+- name: Firewall rule - create chain to ban and log
+  include_tasks: log_chain.yml
+  loop:
+    - name: log-banned-chain
+      rule_name: logging-banned-chain
+      state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ log_banned_chain }}"
+      prefix: "BANNED:INPUT:DROP:"
+      action: DROP
 
 - name: Firewall rule - drop banned traffic
   iptables_raw:
@@ -30,5 +40,5 @@
     state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
     weight: 16
     rules: |
-      -A INPUT -m set --match-set {{ ipset_banned }} src -j {{ log_chain_input_drop }}
+      -A INPUT -m set --match-set {{ ipset_banned }} src -j {{ log_banned_chain }}
   notify: Persist rules

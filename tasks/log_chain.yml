@@ -1,0 +1,12 @@
+---
+
+- name: Firewall rule - create {{ item.name }} logging chain
+  iptables_raw:
+    name: "{{ item.rule_name }}"
+    state: "{{ item.state }}"
+    weight: 0
+    rules: |
+      -N {{ item.chain_name }}
+      -A {{ item.chain_name }} -m limit --limit {{ iptables_log_limit }} -j LOG --log-prefix {{ item.prefix }} --log-level {{ iptables_log_level }} --log-uid
+      -A {{ item.chain_name }} -j {{ item.action }}
+  notify: Persist rules

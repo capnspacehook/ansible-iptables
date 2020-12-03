@@ -25,12 +25,29 @@
   when: iptables_block_bogons | bool
   notify: Persist rules
 
+- name: Firewall rule - create bogon logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: bogons-inbound-drop-chain
+      rule_name: logging-bogons-inbound-drop-chain
+      state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ bogons_inbound_log_chain }}"
+      prefix: "BOGON:INPUT:DROP:"
+      action: DROP
+      log_chain: true
+    - name: bogons-outbound-drop-chain
+      rule_name: logging-bogons-outbound-drop-chain
+      state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ bogons_outbound_log_chain }}"
+      prefix: "BOGON:OUTPUT:DROP:"
+      action: DROP
+
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:
     name: block-bogons
     state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
     weight: 17
     rules: |
-      -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_input_drop }}
-      -A OUTPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_output_drop }}
+      -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ bogons_inbound_log_chain }}
+      -A OUTPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ bogons_outbound_log_chain }}
   notify: Persist rules

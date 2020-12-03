@@ -62,7 +62,6 @@
       -A {{ current_output_accept_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
 
-
 - name: Firewall rule - allow TCP to close connections for {{ item.name }} outbound traffic
   iptables_raw:
     name: "allow-{{ item.name }}-outbound-closed"

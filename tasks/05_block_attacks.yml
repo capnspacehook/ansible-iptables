@@ -1,22 +1,32 @@
 ---
 
+- name: Firewall rule - create invalid traffic logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: portscans-inbound-drop-chain
+      rule_name: logging-portscans-inbound-drop-chain
+      state: "{{ (iptables_block_attacks | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ portscans_inbound_log_chain }}"
+      prefix: "INVALID:INPUT:DROP:"
+      action: "{{ ban_chain }}"
+
 - name: Firewall rule - block portscans and attacks
   iptables_raw:
     name: block-attacks
     state: "{{ (iptables_block_attacks | bool) | ternary('present', 'absent') }}"
     weight: 20
     rules: |
-      -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ACK,PSH PSH -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ACK,URG URG -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ALL ALL -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ALL NONE -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ALL FIN,PSH,URG -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ALL SYN,FIN,PSH,URG -j {{ ban_chain }}
-      -A INPUT -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j {{ ban_chain }}
-      -A INPUT -f -j {{ ban_chain }}
-      -A INPUT -p tcp ! --syn -m state --state NEW -j {{ ban_chain }}
+      -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ACK,PSH PSH -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ACK,URG URG -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ALL ALL -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ALL NONE -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ALL FIN,PSH,URG -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ALL SYN,FIN,PSH,URG -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j {{ portscans_inbound_log_chain }}
+      -A INPUT -f -j {{ portscans_inbound_log_chain }}
+      -A INPUT -p tcp ! --syn -m state --state NEW -j {{ portscans_inbound_log_chain }}
   notify: Persist rules

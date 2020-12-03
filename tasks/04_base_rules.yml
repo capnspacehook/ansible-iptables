@@ -9,30 +9,72 @@
       -A OUTPUT -o lo -j ACCEPT
   notify: Persist rules
 
+- name: Firewall rule - create invalid traffic logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: invalid-inbound-drop-chain
+      rule_name: logging-invalid-inbound-drop-chain
+      state: present
+      chain_name: "{{ invalid_inbound_log_chain }}"
+      prefix: "INVALID:INPUT:DROP:"
+      action: DROP
+    - name: invalid-outbound-drop-chain
+      rule_name: logging-invalid-outbound-drop-chain
+      state: present
+      chain_name: "{{ invalid_outbound_log_chain }}"
+      prefix: "INVALID:OUTPUT:DROP:"
+      action: DROP
+
 - name: Firewall rule - block invalid traffic
   iptables_raw:
     name: block-invalid
     weight: 5
     rules: |
-      -A INPUT -m state --state INVALID -j {{ log_chain_input_drop }}
-      -A OUTPUT -m state --state INVALID -j {{ log_chain_output_drop }}
+      -A INPUT -m state --state INVALID -j {{ invalid_inbound_log_chain }}
+      -A OUTPUT -m state --state INVALID -j {{ invalid_outbound_log_chain }}
   notify: Persist rules
+
+- name: Firewall rule - create local ip spoof logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: local-ip-spoof-inbound-drop-chain
+      rule_name: logging-local-ip-spoof-inbound-drop-chain
+      state: present
+      chain_name: "{{ local_ip_inbound_log_chain }}"
+      prefix: "LOCAL_IP:INPUT:DROP:"
+      action: DROP
+    - name: local-ip-spoof-outbound-drop-chain
+      rule_name: logging-local-ip-spoof-outbound-drop-chain
+      state: present
+      chain_name: "{{ local_ip_outbound_log_chain }}"
+      prefix: "LOCAL_IP:OUTPUT:DROP:"
+      action: DROP
 
 - name: Firewall rule - block invalid traffic to/from the box's IP
   iptables_raw:
     name: block-local_ip_spoof
     weight: 5
     rules: |
-      -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_input_drop }}
-      -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ log_chain_output_drop }}
+      -A INPUT -s {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ local_ip_inbound_log_chain }}
+      -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ local_ip_outbound_log_chain }}
   notify: Persist rules
+
+- name: Firewall rule - create chain to ban and log
+  include_tasks: log_chain.yml
+  loop:
+    - name: log-and-ban-chain
+      rule_name: log-and-ban-chain
+      state: present
+      chain_name: "{{ log_and_ban_chain }}"
+      prefix: "INPUT:DROP:"
+      action: "{{ ban_chain }}"
 
 - name: Firewall rule - log dropped packets that fall through
   iptables_raw:
     name: log-dropped
     weight: 90
     rules: |
-      -A INPUT -j {{ ban_chain }}
+      -A INPUT -j {{ log_and_ban_chain }}
       -A OUTPUT -j {{ log_chain_output_drop }}
   notify: Persist rules
 

@@ -1,41 +1,43 @@
 ---
 
 - name: Firewall rule - create default logging chains
-  iptables_raw:
-    name: "{{ item.rule_name }}"
-    weight: 0
-    rules: |
-      -N {{ item.chain_name }}
-      -A {{ item.chain_name }} -m limit --limit {{ iptables_log_limit }} -j LOG --log-prefix {{ item.prefix }} --log-level {{ iptables_log_level }} --log-uid
-      -A {{ item.chain_name }} -j {{ item.action }}
+  include_tasks: log_chain.yml
   loop:
-    - rule_name: logging-input-drop-chain
+    - name: input-drop
+      rule_name: logging-input-drop-chain
+      state: present
       chain_name: "{{ log_chain_input_drop }}"
       prefix: "INPUT:DROP:"
       action: DROP
-    - rule_name: logging-output-drop-chain
+    - name: output-drop
+      rule_name: logging-output-drop-chain
+      state: present
       chain_name: "{{ log_chain_output_drop }}"
       prefix: "OUTPUT:DROP:"
       action: DROP
-    - rule_name: logging-input-accept-chain
+    - name: input-accept
+      rule_name: logging-input-accept-chain
+      state: present
       chain_name: "{{ log_chain_input_accept }}"
       prefix: "INPUT:ACCEPT:"
       action: ACCEPT
-    - rule_name: logging-output-accept-chain
+    - name: output-accept
+      rule_name: logging-output-accept-chain
+      state: present
       chain_name: "{{ log_chain_output_accept }}"
       prefix: "OUTPUT:ACCEPT:"
       action: ACCEPT
-  notify: Persist rules
 
-- name: Firewall rule - create helper chains
-  iptables_raw:
-    name: helper-chains
-    weight: 0
-    rules: |
-      -N {{ inbound_accept_chain }}
-      -A {{ inbound_accept_chain }} -m state --state NEW -j {{ log_chain_input_accept }}
-      -A {{ inbound_accept_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -N {{ outbound_accept_chain }}
-      -A {{ outbound_accept_chain }} -m state --state NEW -j {{ log_chain_output_accept }}
-      -A {{ outbound_accept_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-  notify: Persist rules
+- name: Firewall rule - create default log helper chains
+  include_tasks: log_helper_chain.yml
+  loop:
+    - name: input-accept
+      rule_name: input-accept-helper-chain
+      state: present
+      chain_name: "{{ inbound_accept_chain }}"
+      action: "{{ log_chain_input_accept }}"
+    - name: output-accept
+      rule_name: output-accept-helper-chain
+      state: present
+      chain_name: "{{ outbound_accept_chain }}"
+      action: "{{ log_chain_output_accept }}"

@@ -9,9 +9,19 @@
       -N {{ ping_filter_user }}
   notify: Persist rules
 
+- name: Firewall rule - create outbound ping logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: ping-outbound-accept-chain
+      rule_name: logging-ping-outbound-accept-chain
+      state: "{{ (iptables_allow_ping_outbound | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ ping_outbound_log_chain }}"
+      prefix: "PING:OUTPUT:ACCEPT:"
+      action: ACCEPT
+
 - name: Set ping chain if ping user filtering is disabled
   set_fact:
-    ping_filter_user: "{{ log_chain_output_accept }}"
+    ping_filter_user: "{{ ping_outbound_log_chain }}"
   when: (iptables_allow_ping_outbound | bool) and (iptables_ping_users | length == 0)
 
 - name: Firewall rule - filter outbound ping traffic by user
@@ -20,9 +30,19 @@
     state: "{{ (iptables_allow_ping_outbound | bool) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
-      -A {{ ping_filter_user }} -m owner --uid-owner {{ item }} -j {{ log_chain_output_accept }}
+      -A {{ ping_filter_user }} -m owner --uid-owner {{ item }} -j {{ ping_outbound_log_chain }}
   loop: "{{ iptables_ping_users }}"
   notify: Persist rules
+
+- name: Firewall rule - create inbound ping logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: ping-inbound-accept-chain
+      rule_name: logging-ping-inbound-accept-chain
+      state: "{{ (iptables_allow_ping_inbound | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ ping_inbound_log_chain }}"
+      prefix: "PING:INPUT:ACCEPT:"
+      action: ACCEPT
 
 - name: Firewall rule - filter ICMP echo requests and replies by packet size
   iptables_raw:
@@ -31,7 +51,7 @@
     weight: 60
     rules: |
       -N {{ ping_filter_size_inbound_chain }}
-      -A {{ ping_filter_size_inbound_chain }} -m length --length 84 -j {{ log_chain_input_accept }}
+      -A {{ ping_filter_size_inbound_chain }} -m length --length 84 -j {{ ping_inbound_log_chain }}
       -N {{ ping_filter_size_outbound_chain }}
       -A {{ ping_filter_size_outbound_chain }} -m length --length 84 -j {{ ping_filter_user }}
   notify: Persist rules
@@ -53,8 +73,24 @@
     weight: 60
     rules: |
       -A OUTPUT -p icmp --icmp-type echo-request -j {{ ping_filter_size_outbound_chain }}
-      -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j {{ ping_filter_size_inbound_chain }}
+      -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -m length --length 84 -j ACCEPT
   notify: Persist rules
+
+- name: Firewall rule - create deprecated ICMP logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: icmp-inbound-drop-chain
+      rule_name: logging-icmp-inbound-drop-chain
+      state: "{{ (iptables_filter_icmp | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ icmp_inbound_log_chain }}"
+      prefix: "ICMP:INPUT:DROP:"
+      action: "{{ ban_chain }}"
+    - name: icmp-outbound-drop-chain
+      rule_name: logging-icmp-outbound-drop-chain
+      state: "{{ (iptables_filter_icmp | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ icmp_outbound_log_chain }}"
+      prefix: "ICMP:OUTPUT:DROP:"
+      action: DROP
 
 - name: Firewall rule - filter deprecated icmp messages
   iptables_raw:
@@ -63,26 +99,26 @@
     weight: 65
     rules: |
       -N {{ icmp_filter_inbound_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type echo-request -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type echo-reply -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type protocol-unreachable -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type source-quench -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type redirect -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type timestamp-request -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type timestamp-reply -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type address-mask-request -j {{ ban_chain }}
-      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type address-mask-reply -j {{ ban_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type echo-request -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type echo-reply -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type protocol-unreachable -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type source-quench -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type redirect -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type timestamp-request -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type timestamp-reply -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type address-mask-request -j {{ icmp_inbound_log_chain }}
+      -A {{ icmp_filter_inbound_chain }} -p icmp --icmp-type address-mask-reply -j {{ icmp_inbound_log_chain }}
       -A {{ icmp_filter_inbound_chain }} -j ACCEPT
       -N {{ icmp_filter_outbound_chain }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-request -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-reply -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type protocol-unreachable -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type source-quench -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type redirect -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type timestamp-request -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type timestamp-reply -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type address-mask-request -j {{ log_chain_output_drop }}
-      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type address-mask-reply -j {{ log_chain_output_drop }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-request -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type echo-reply -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type protocol-unreachable -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type source-quench -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type redirect -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type timestamp-request -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type timestamp-reply -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type address-mask-request -j {{ icmp_outbound_log_chain }}
+      -A {{ icmp_filter_outbound_chain }} -p icmp --icmp-type address-mask-reply -j {{ icmp_outbound_log_chain }}
       -A {{ icmp_filter_outbound_chain }} -j ACCEPT
       -A INPUT -p icmp -j {{ icmp_filter_inbound_chain }}
       -A OUTPUT -p icmp -j {{ icmp_filter_outbound_chain }}
