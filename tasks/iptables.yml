@@ -11,7 +11,6 @@
 
 - import_tasks: 02_ipset.yml
   tags: ipset
-  when: iptables_ban_hosts or iptables_block_bogons or (iptables_whitelist | length > 0) or (iptables_blacklist | length > 0)
 
 - import_tasks: 03_allow_services.yml
   tags: allow_services
@@ -21,22 +20,18 @@
 
 - import_tasks: 05_block_attacks.yml
   tags: block_attacks
-  when: iptables_block_attacks | bool
 
 - import_tasks: 06_global_rules.yml
   tags: global_rules
-  when: (iptables_whitelist | length > 0) or (iptables_blacklist | length > 0)
 
 - import_tasks: 07_filter_icmp.yml
   tags: filter_icmp
 
 - import_tasks: 08_ban_hosts.yml
   tags: ban_hosts
-  when: iptables_ban_hosts | bool
 
 - import_tasks: 09_bogons.yml
   tags: bogons
-  when: iptables_block_bogons | bool
 
 - import_tasks: 10_user_rules.yml
   tags: user_rules

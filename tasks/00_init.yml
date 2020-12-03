@@ -18,10 +18,10 @@
 - name: Initialize iptables ban chain
   iptables_raw:
     name: create-ban-chain
+    state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
     weight: 0
     rules: |
       -N {{ ban_chain }}
-  when: iptables_ban_hosts | bool
   notify: Persist rules
 
 - name: Set ban chain to log chain if host banning is disabled

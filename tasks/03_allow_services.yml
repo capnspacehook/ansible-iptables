@@ -4,6 +4,7 @@
   set_fact:
     service_allow_rules:
       - name: ssh
+        state: present
         weight: 30
         proto: tcp
         allow_inbound: "{{ iptables_allow_ssh_inbound | bool }}"
@@ -12,6 +13,7 @@
         outbound_ports: "{{ iptables_ssh_outbound_ports }}"
         users: "{{ iptables_ssh_users }}"
       - name: ntp
+        state: present
         weight: 35
         proto: udp
         allow_inbound: "{{ iptables_allow_ntp_inbound | bool }}"
@@ -20,6 +22,7 @@
         outbound_ports: "{{ iptables_ntp_outbound_ports }}"
         users: "{{ iptables_ntp_users }}"
       - name: dns
+        state: present
         weight: 40
         proto: udp
         allow_inbound: "{{ iptables_allow_dns_inbound | bool }}"
@@ -28,6 +31,7 @@
         outbound_ports: "{{ iptables_dns_outbound_ports }}"
         users: "{{ iptables_dns_users }}"
       - name: http
+        state: present
         weight: 45
         proto: tcp
         allow_inbound: "{{ iptables_allow_http_inbound | bool }}"
@@ -36,6 +40,7 @@
         outbound_ports: "{{ iptables_http_outbound_ports }}"
         users: "{{ iptables_http_users }}"
       - name: https
+        state: present
         weight: 50
         proto: tcp
         allow_inbound: "{{ iptables_allow_https_inbound | bool }}"

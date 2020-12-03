@@ -5,6 +5,14 @@
   register: ipset_out
   changed_when: "'set with the same name already exists' not in ipset_out.stderr"
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
+  when: iptables_block_bogons | bool
+
+- name: Destroy ipset for bogons
+  command: "ipset destroy {{ ipset_bogons }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: not iptables_block_bogons
 
 - name: Add bogons to ipset
   command: "ipset add {{ ipset_bogons }} {{ item }}"
@@ -14,10 +22,12 @@
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
+  when: iptables_block_bogons | bool
 
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:
     name: block-bogons
+    state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
     weight: 17
     rules: |
       -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ log_chain_input_drop }}

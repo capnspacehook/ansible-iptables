@@ -3,10 +3,10 @@
 - name: Firewall rule - create ping chain
   iptables_raw:
     name: create-ping-chains
+    state: "{{ ((iptables_allow_ping_outbound | bool) and (iptables_ping_users | length > 0)) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
       -N {{ ping_filter_user }}
-  when: (iptables_allow_ping_outbound | bool) and (iptables_ping_users | length > 0)
   notify: Persist rules
 
 - name: Set ping chain if ping user filtering is disabled
@@ -17,48 +17,49 @@
 - name: Firewall rule - filter outbound ping traffic by user
   iptables_raw:
     name: "filter-ping-outbound-user-{{ item }}"
+    state: "{{ (iptables_allow_ping_outbound | bool) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
       -A {{ ping_filter_user }} -m owner --uid-owner {{ item }} -j {{ log_chain_output_accept }}
   loop: "{{ iptables_ping_users }}"
-  when: iptables_allow_ping_outbound | bool
   notify: Persist rules
 
 - name: Firewall rule - filter ICMP echo requests and replies by packet size
   iptables_raw:
     name: filter-ping-size
+    state: "{{ ((iptables_allow_ping_inbound | bool) or (iptables_allow_ping_outbound | bool)) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
       -N {{ ping_filter_size_inbound_chain }}
       -A {{ ping_filter_size_inbound_chain }} -m length --length 84 -j {{ log_chain_input_accept }}
       -N {{ ping_filter_size_outbound_chain }}
       -A {{ ping_filter_size_outbound_chain }} -m length --length 84 -j {{ ping_filter_user }}
-  when: (iptables_allow_ping_inbound | bool) or (iptables_allow_ping_outbound | bool)
   notify: Persist rules
 
 - name: Firewall rule - allow ping inbound
   iptables_raw:
     name: allow-ping-inbound
+    state: "{{ (iptables_allow_ping_inbound | bool) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
       -A INPUT -p icmp --icmp-type echo-request -j {{ ping_filter_size_inbound_chain }}
       -A OUTPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -m length --length 84 -j ACCEPT
-  when: iptables_allow_ping_inbound | bool
   notify: Persist rules
 
 - name: Firewall rule - allow ping outbound
   iptables_raw:
     name: allow-ping-outbound
+    state: "{{ (iptables_allow_ping_outbound | bool) | ternary('present', 'absent') }}"
     weight: 60
     rules: |
       -A OUTPUT -p icmp --icmp-type echo-request -j {{ ping_filter_size_outbound_chain }}
       -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -j {{ ping_filter_size_inbound_chain }}
-  when: iptables_allow_ping_outbound | bool
   notify: Persist rules
 
 - name: Firewall rule - filter deprecated icmp messages
   iptables_raw:
     name: filter-icmp
+    state: "{{ (iptables_filter_icmp | bool) | ternary('present', 'absent') }}"
     weight: 65
     rules: |
       -N {{ icmp_filter_inbound_chain }}
@@ -85,5 +86,4 @@
       -A {{ icmp_filter_outbound_chain }} -j ACCEPT
       -A INPUT -p icmp -j {{ icmp_filter_inbound_chain }}
       -A OUTPUT -p icmp -j {{ icmp_filter_outbound_chain }}
-  when: iptables_filter_icmp | bool
   notify: Persist rules

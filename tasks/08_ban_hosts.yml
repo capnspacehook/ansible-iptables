@@ -5,10 +5,19 @@
   register: ipset_out
   changed_when: "'set with the same name already exists' not in ipset_out.stderr"
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
+  when: iptables_ban_hosts | bool
+
+- name: Destroy ipset for banned hosts
+  command: "ipset destroy {{ ipset_banned }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: not iptables_ban_hosts
 
 - name: Firewall rule - ban hosts that do not match rules
   iptables_raw:
     name: ban-chain
+    state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
     weight: 0
     rules: |
       -A {{ ban_chain }} -m hashlimit --hashlimit-above {{ iptables_ban_interval }} --hashlimit-burst {{ iptables_ban_burst }} --hashlimit-htable-expire {{ iptables_ban_expire }} --hashlimit-mode srcip --hashlimit-name {{ iptables_suspicious_hashtable }} -j SET --add-set {{ ipset_banned }} src
@@ -18,6 +27,7 @@
 - name: Firewall rule - drop banned traffic
   iptables_raw:
     name: drop-banned
+    state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
     weight: 16
     rules: |
       -A INPUT -m set --match-set {{ ipset_banned }} src -j {{ log_chain_input_drop }}

@@ -8,11 +8,11 @@
 - name: "Firewall rule - create {{ item.name }} chains"
   iptables_raw:
     name: "create-{{ item.name }}-chains"
+    state: "{{ ((item.state == 'present') and (item.users | length > 0)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -N {{ current_output_log_chain }}
       -N {{ current_output_accept_chain }}
-  when: item.users | length > 0
   notify: Persist rules
 
 - name: "Set {{ item.name }} chains if user filtering is disabled"
@@ -24,6 +24,7 @@
 - name: "Firewall rule - filter outbound {{ item.name }} traffic by user"
   iptables_raw:
     name: "filter-{{ item.name }}-outbound-user-{{ user }}"
+    state: "{{ item.state }}"
     weight: "{{ item.weight }}"
     rules: |
       -A {{ current_output_log_chain }} -m owner --uid-owner {{ user }} -j {{ outbound_accept_chain }}
@@ -36,29 +37,29 @@
 - name: Firewall rule - allow TCP to close connections for {{ item.name }} traffic
   iptables_raw:
     name: "allow-{{ item.name }}-closed"
+    state: "{{ ((item.state == 'present') and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -A {{ current_output_log_chain }} -m owner ! --socket-exists -j ACCEPT
       -A {{ current_output_accept_chain }} -m owner ! --socket-exists -j ACCEPT
-  when: (item.users | length > 0) and (item.proto | lower == 'tcp')
   notify: Persist rules
 
 - name: "Firewall rule - allow {{ item.name }} inbound"
   iptables_raw:
     name: "allow-{{ item.name }}-inbound"
+    state: "{{ ((item.state == 'present') and (item.allow_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -A INPUT -p {{ item.proto }} --dport {{ item.inbound_port }} -j {{ inbound_accept_chain }}
       -A OUTPUT -p {{ item.proto }} --sport {{ item.inbound_port }} -m state --state ESTABLISHED,RELATED -j {{ current_output_accept_chain }}
-  when: item.allow_inbound | bool
   notify: Persist rules
 
 - name: "Firewall rule - allow {{ item.name }} outbound"
   iptables_raw:
     name: "allow-{{ item.name }}-outbound"
+    state: "{{ ((item.state == 'present') and (item.allow_outbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
       -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.outbound_ports }} -j {{ current_output_log_chain }}
       -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.outbound_ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-  when: item.allow_outbound | bool
   notify: Persist rules

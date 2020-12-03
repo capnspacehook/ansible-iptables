@@ -83,7 +83,8 @@ Any of the `*_users` variables can be set to an empty list to make them allow al
 
 The `iptables_allow_inbound` and `iptables_allow_outbound` variables can be used to add additional rules. Both varibles take a list of dicts, with the following keys:
 
-- name: optional; name of the service
+- name: name of the service
+- state: optional; 'present' if you want to enable the rule, and 'absent' if you want to disable it
 - proto: the protocol to allow
 - port: the port to allow for inbound rules
 - ports: the port(s) to allow for outbound rules, up to 15 ports can be specified

@@ -7,6 +7,13 @@
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
   when: iptables_whitelist | length > 0
 
+- name: Destroy ipset for whitelisted hosts/ranges
+  command: "ipset destroy {{ ipset_whitelist }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: iptables_whitelist | length == 0
+
 - name: Add whitelisted hosts/ranges to ipset
   command: "ipset add {{ ipset_whitelist }} {{ item }}"
   register: ipset_out
@@ -15,16 +22,15 @@
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   loop: "{{ iptables_whitelist }}"
-  when: iptables_whitelist | length > 0
 
 - name: Firewall rule - allow whitelisted hosts/ranges
   iptables_raw:
     name: global-whitelist
+    state: "{{ (iptables_whitelist | length > 0) | ternary('present', 'absent') }}"
     weight: 15
     rules: |
       -A INPUT -m set ! --match-set {{ ipset_whitelist }} src -j {{ log_chain_input_drop }}
       -A OUTPUT -m set ! --match-set {{ ipset_whitelist }} dst -j {{ log_chain_output_drop }}
-  when: iptables_whitelist | length > 0
   notify: Persist rules
 
 - name: Create ipset for blacklisted hosts/ranges
@@ -34,6 +40,13 @@
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
   when: iptables_blacklist | length > 0
 
+- name: Destroy ipset for blacklisted hosts/ranges
+  command: "ipset destroy {{ ipset_blacklist }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: ipset_blacklist | length == 0
+
 - name: Add blacklisted hosts/ranges to ipset
   command: "ipset add {{ ipset_blacklist }} {{ item }}"
   register: ipset_out
@@ -41,15 +54,14 @@
     "Element cannot be added to the set: it's already added" not in ipset_out.stderr
   failed_when: |
     ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
-  when: iptables_blacklist | length > 0
   loop: "{{ iptables_blacklist }}"
 
 - name: Firewall rule - allow blacklisted hosts/ranges
   iptables_raw:
     name: global-blacklist
+    state: "{{ (iptables_blacklist | length > 0) | ternary('present', 'absent') }}"
     weight: 15
     rules: |
       -A INPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_input_drop }}
       -A OUTPUT -m set --match-set {{ ipset_blacklist }} src,dst -j {{ log_chain_output_drop }}
-  when: iptables_blacklist | length > 0
   notify: Persist rules

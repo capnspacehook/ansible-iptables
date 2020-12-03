@@ -3,6 +3,7 @@
 - name: Firewall rule - block portscans and attacks
   iptables_raw:
     name: block-attacks
+    state: "{{ (iptables_block_attacks | bool) | ternary('present', 'absent') }}"
     weight: 20
     rules: |
       -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j {{ ban_chain }}
