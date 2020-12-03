@@ -14,6 +14,7 @@ Default rules are:
 - log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic seperately
 
 In addition to this, a package to persist `iptables` rules upon reboot is installed and configured, and if bogon or host banning is enabled, `ipset` is installed.
+A script is also installed that persists `ipset` sets upon reboot as well.
 
 The benefits of using this role are robust logging, portscan blocking, automatic host banning, ICMP filtering (ICMP echo shells shouldn't work), and strict rules that only allow established traffic outbound for an inbound rule and vice versa, as well as filtering outbound traffic by specific user/groups.
 

@@ -8,3 +8,22 @@
 - name: Clear ipset rules
   command: ipset destroy
   when: ipset_destroy_sets | bool
+
+- name: Add ipset restoration script
+  template:
+    src: 05-ipset.j2
+    dest: /usr/share/netfilter-persistent/plugins.d/05-ipset
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian"
+
+- name: Create ipset save file
+  copy:
+    content: ""
+    dest: "{{ ipset_save_file }}"
+    force: no
+    owner: root
+    group: root
+    mode: '0640'
+  when: ansible_facts.os_family == "Debian"

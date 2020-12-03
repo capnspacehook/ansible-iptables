@@ -8,6 +8,8 @@ log_chain_output_accept: LOG_OUTPUT_ACCEPT
 inbound_accept_chain: INPUT_LOG_NEW
 outbound_accept_chain: OUTPUT_LOG_NEW
 
+ipset_save_file: /etc/iptables/ipset
+
 service_allow_rules: []
 user_service_inbound_rules: []
 user_service_outbound_rules: []

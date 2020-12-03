@@ -1,0 +1,38 @@
+#!/bin/sh
+
+{{ ansible_managed | comment }}
+
+set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+load_rules()
+{
+	ipset restore -f "{{ ipset_save_file }}"
+}
+
+save_rules()
+{
+	ipset save -f "{{ ipset_save_file }}"
+}
+
+flush_rules()
+{
+	ipset destroy
+}
+
+case "$1" in
+start|restart|reload|force-reload)
+	load_rules
+	;;
+save)
+	save_rules
+	;;
+stop|flush)
+	flush_rules
+	;;
+*)
+    echo "Usage: $0 {start|restart|reload|force-reload|save|flush}" >&2
+    exit 1
+    ;;
+esac
