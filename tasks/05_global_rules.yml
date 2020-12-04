@@ -39,6 +39,8 @@
       chain_name: "{{ global_whitelist_outbound_log_chain }}"
       prefix: "WHITELIST:OUTPUT:DROP:"
       action: DROP
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - allow whitelisted hosts/ranges
   iptables_raw:
@@ -89,6 +91,8 @@
       chain_name: "{{ global_blacklist_outbound_log_chain }}"
       prefix: "BLACKLIST:OUTPUT:DROP:"
       action: DROP
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - allow blacklisted hosts/ranges
   iptables_raw:

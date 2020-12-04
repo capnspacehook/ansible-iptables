@@ -15,7 +15,7 @@
     name: "{{ iptables_save_service }}"
     enabled: true
 
-- name: Initialize iptables ban chain
+- name: Firewall rule - create ban chain
   iptables_raw:
     name: create-ban-chain
     state: "{{ (iptables_ban_hosts | bool) | ternary('present', 'absent') }}"
@@ -28,3 +28,15 @@
   set_fact:
     ban_chain: DROP
   when: not iptables_ban_hosts
+
+- name: Firewall rule - create default logging chain
+  include_tasks: log_chain.yml
+  loop:
+    - name: output-drop
+      rule_name: logging-output-drop-chain
+      state: present
+      chain_name: "{{ log_chain_output_drop }}"
+      prefix: "OUTPUT:DROP:"
+      action: DROP
+  loop_control:
+    loop_var: log_rule

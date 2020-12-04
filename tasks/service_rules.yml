@@ -2,8 +2,10 @@
 
 - name: "Set {{ item.name }} chain names"
   set_fact:
-    current_output_accept_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT" # used in inbound connections
-    current_output_log_chain: "{{ item.name | upper }}_OUTPUT_LOG" # used in outbound connections
+    current_output_established_chain: "{{ item.name | upper }}_EST_OUTPUT"
+    current_output_new_chain: "{{ item.name | upper }}_NEW_OUTPUT"
+    current_input_accept_log_chain: "{{ item.name | upper }}_INPUT_ACCEPT_LOG"
+    current_output_accept_log_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT_LOG"
 
 - name: "Firewall rule - create {{ item.name }} inbound chains"
   iptables_raw:
@@ -11,7 +13,7 @@
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -N {{ current_output_accept_chain }}
+      -N {{ current_output_established_chain }}
   notify: Persist rules
 
 - name: "Firewall rule - create {{ item.name }} outbound chains"
@@ -20,13 +22,13 @@
     state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -N {{ current_output_log_chain }}
+      -N {{ current_output_new_chain }}
   notify: Persist rules
 
 - name: "Set {{ item.name }} chains if user filtering is disabled"
   set_fact:
-    current_output_log_chain: "{{ outbound_accept_chain }}"
-    current_output_accept_chain: ACCEPT
+    current_output_established_chain: ACCEPT
+    current_output_new_chain: "{{ current_output_accept_log_chain }}"
   when: item.users | length == 0
 
 - name: "Firewall rule - filter established outbound {{ item.name }} traffic by user"
@@ -35,11 +37,23 @@
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A {{ current_output_accept_chain }} -m owner --uid-owner {{ user }} -j ACCEPT
+      -A {{ current_output_established_chain }} -m owner --uid-owner {{ user }} -j ACCEPT
   loop: "{{ item.users }}"
   loop_control:
     loop_var: user
   notify: Persist rules
+
+- name: "Firewall rule - create {{ item.name }} outbound accept logging chain"
+  include_tasks: log_chain.yml
+  loop:
+    - name: "{{ item.name }}-outbound-accept-chain"
+      rule_name: "logging-{{ item.name }}-outbound-accept-chain"
+      state: "{{ (item.allow_outbound | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_output_accept_log_chain }}"
+      prefix: "{{ item.name | upper }}:OUTPUT:ACCEPT:"
+      action: ACCEPT
+  loop_control:
+    loop_var: log_rule
 
 - name: "Firewall rule - filter new outbound {{ item.name }} traffic by user"
   iptables_raw:
@@ -47,7 +61,8 @@
     state: "{{ ((item.state == 'present') and (item.allow_outbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A {{ current_output_log_chain }} -m owner --uid-owner {{ user }} -j {{ outbound_accept_chain }}
+      -A {{ current_output_new_chain }} -m owner --uid-owner {{ user }} -m state --state NEW -j {{ current_output_accept_log_chain }}
+      -A {{ current_output_new_chain }} -m owner --uid-owner {{ user }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   loop: "{{ item.users }}"
   loop_control:
     loop_var: user
@@ -59,7 +74,7 @@
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A {{ current_output_accept_chain }} -m owner ! --socket-exists -j ACCEPT
+      -A {{ current_output_established_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
 
 - name: Firewall rule - allow TCP to close connections for {{ item.name }} outbound traffic
@@ -68,8 +83,20 @@
     state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A {{ current_output_log_chain }} -m owner ! --socket-exists -j ACCEPT
+      -A {{ current_output_new_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
+
+- name: "Firewall rule - create {{ item.name }} inbound accept logging chain"
+  include_tasks: log_chain.yml
+  loop:
+    - name: "{{ item.name }}-inbound-accept-chain"
+      rule_name: "logging-{{ item.name }}-inbound-accept-chain"
+      state: "{{ (item.allow_inbound | bool) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_input_accept_log_chain }}"
+      prefix: "{{ item.name | upper }}:INPUT:ACCEPT:"
+      action: ACCEPT
+  loop_control:
+    loop_var: log_rule
 
 - name: "Firewall rule - allow {{ item.name }} inbound"
   iptables_raw:
@@ -77,8 +104,9 @@
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A INPUT -p {{ item.proto }} --dport {{ item.inbound_port }} -j {{ inbound_accept_chain }}
-      -A OUTPUT -p {{ item.proto }} --sport {{ item.inbound_port }} -m state --state ESTABLISHED,RELATED -j {{ current_output_accept_chain }}
+      -A INPUT -p {{ item.proto }} --dport {{ item.inbound_port }} -m state --state NEW -j {{ current_input_accept_log_chain }}
+      -A INPUT -p {{ item.proto }} --dport {{ item.inbound_port }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A OUTPUT -p {{ item.proto }} --sport {{ item.inbound_port }} -m state --state ESTABLISHED,RELATED -j {{ current_output_established_chain }}
   notify: Persist rules
 
 - name: "Firewall rule - allow {{ item.name }} outbound"
@@ -87,6 +115,6 @@
     state: "{{ ((item.state == 'present') and (item.allow_outbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight }}"
     rules: |
-      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.outbound_ports }} -j {{ current_output_log_chain }}
+      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.outbound_ports }} -j {{ current_output_new_chain }}
       -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.outbound_ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
   notify: Persist rules

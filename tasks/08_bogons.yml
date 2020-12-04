@@ -41,6 +41,8 @@
       chain_name: "{{ bogons_outbound_log_chain }}"
       prefix: "BOGON:OUTPUT:DROP:"
       action: DROP
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - block all traffic involving bogons
   iptables_raw:

@@ -33,6 +33,8 @@
       chain_name: "{{ log_banned_chain }}"
       prefix: "BANNED:INPUT:DROP:"
       action: DROP
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - drop banned traffic
   iptables_raw:

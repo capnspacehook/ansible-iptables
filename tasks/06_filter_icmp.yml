@@ -18,6 +18,8 @@
       chain_name: "{{ ping_outbound_log_chain }}"
       prefix: "PING:OUTPUT:ACCEPT:"
       action: ACCEPT
+  loop_control:
+    loop_var: log_rule
 
 - name: Set ping chain if ping user filtering is disabled
   set_fact:
@@ -43,6 +45,8 @@
       chain_name: "{{ ping_inbound_log_chain }}"
       prefix: "PING:INPUT:ACCEPT:"
       action: ACCEPT
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - filter ICMP echo requests and replies by packet size
   iptables_raw:
@@ -91,6 +95,8 @@
       chain_name: "{{ icmp_outbound_log_chain }}"
       prefix: "ICMP:OUTPUT:DROP:"
       action: DROP
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - filter deprecated icmp messages
   iptables_raw:

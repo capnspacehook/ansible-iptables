@@ -9,6 +9,8 @@
       chain_name: "{{ portscans_inbound_log_chain }}"
       prefix: "INVALID:INPUT:DROP:"
       action: "{{ ban_chain }}"
+  loop_control:
+    loop_var: log_rule
 
 - name: Firewall rule - block portscans and attacks
   iptables_raw:

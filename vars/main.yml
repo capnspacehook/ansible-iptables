@@ -1,30 +1,34 @@
 ---
 
-log_chain_input_drop: LOG_INPUT_DROP
 log_chain_output_drop: LOG_OUTPUT_DROP
-log_chain_input_accept: LOG_INPUT_ACCEPT
-log_chain_output_accept: LOG_OUTPUT_ACCEPT
 
-inbound_accept_chain: INPUT_LOG_NEW
-outbound_accept_chain: OUTPUT_LOG_NEW
-
-invalid_inbound_log_chain: INVALID_INBOUND_LOG
-invalid_outbound_log_chain: INVALID_OUTBOUND_LOG
-local_ip_inbound_log_chain: LOCAL_IP_INBOUND_LOG
-local_ip_outbound_log_chain: LOCAL_IP_OUTBOUND_LOG
+invalid_inbound_log_chain: INVALID_INPUT_LOG
+invalid_outbound_log_chain: INVALID_OUTPUT_LOG
+local_ip_inbound_log_chain: LOCAL_IP_INPUT_LOG
+local_ip_outbound_log_chain: LOCAL_IP_OUTPUT_LOG
 portscans_inbound_log_chain: PORTSCAN_LOG
-global_whitelist_inbound_log_chain: G_WHITELIST_INBOUND_LOG
-global_whitelist_outbound_log_chain: G_WHITELIST_OUTBOUND_LOG
-global_blacklist_inbound_log_chain: G_BLACKLIST_INBOUND_LOG
-global_blacklist_outbound_log_chain: G_BLACKLIST_OUTBOUND_LOG
-ping_inbound_log_chain: PING_INBOUND_LOG
-ping_outbound_log_chain: PING_OUTBOUND_LOG
-icmp_inbound_log_chain: ICMP_INBOUND_LOG
-icmp_outbound_log_chain: ICMP_OUTBOUND_LOG
+
+global_whitelist_inbound_log_chain: G_WHITELIST_INPUT_LOG
+global_whitelist_outbound_log_chain: G_WHITELIST_OUTPUT_LOG
+global_blacklist_inbound_log_chain: G_BLACKLIST_INPUT_LOG
+global_blacklist_outbound_log_chain: G_BLACKLIST_OUTPUT_LOG
+
+ping_inbound_log_chain: PING_INPUT_LOG
+ping_outbound_log_chain: PING_OUTPUT_LOG
+icmp_filter_inbound_chain: ICMP_INPUT_FILTER
+icmp_filter_outbound_chain: ICMP_OUTPUT_FILTER
+ping_filter_user: PING_FILTER_USER
+ping_filter_size_inbound_chain: PING_INPUT_FILTER_SIZE
+ping_filter_size_outbound_chain: PING_OUTPUT_FILTER_SIZE
+icmp_inbound_log_chain: ICMP_INPUT_LOG
+icmp_outbound_log_chain: ICMP_OUTPUT_LOG
+
+ban_chain: BAN
 log_and_ban_chain: LOG_AND_BAN
 log_banned_chain: BANNED_LOG
-bogons_inbound_log_chain: BOGON_INBOUND_LOG
-bogons_outbound_log_chain: BOGON_OUTBOUND_LOG
+
+bogons_inbound_log_chain: BOGON_INPUT_LOG
+bogons_outbound_log_chain: BOGON_OUTPUT_LOG
 
 ipset_save_file: /etc/iptables/ipset
 
@@ -35,13 +39,6 @@ ipset_whitelist: global_whitelist
 ipset_blacklist: global_blacklist
 ipset_banned: banned_hosts
 ipset_bogons: bogons
-
-ban_chain: BAN
-icmp_filter_inbound_chain: ICMP_INPUT_FILTER
-icmp_filter_outbound_chain: ICMP_OUTPUT_FILTER
-ping_filter_user: PING_FILTER_USER
-ping_filter_size_inbound_chain: PING_INPUT_FILTER_SIZE
-ping_filter_size_outbound_chain: PING_OUTPUT_FILTER_SIZE
 
 iptables_suspicious_hashtable: t_SUSPICIOUS
 
