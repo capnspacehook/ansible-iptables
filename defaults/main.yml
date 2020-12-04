@@ -3,7 +3,7 @@
 iptables_keep_unmanaged_rules: no
 ipset_destroy_sets: false
 
-iptables_log_limit: 5/min
+iptables_log_limit: 1/sec
 iptables_log_level: info
 
 iptables_block_attacks: true

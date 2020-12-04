@@ -26,9 +26,9 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 
 |Name|Default Value|Description|
 |----|-------------|-----------|
-|`iptables_keep_unmanaged_rules`|no|'yes' if you want to flush all rules and chains not managed by this Ansible role|
+|`iptables_keep_unmanaged_rules`|no|'yes' if you want to keep all rules and chains not managed by this Ansible role|
 |`ipset_destroy_sets`|false|true if you want to destroy all previously created `ipset` sets|
-|`iptables_log_limit`|5/min|amount of log messages from `iptables` that will be printed. Useful for supressing multiple logs of similar events|
+|`iptables_log_limit`|1/sec|amount of log messages from `iptables` that will be printed. Useful for supressing multiple logs of similar events|
 |`iptables_log_level`|info|level at which `iptables` will log|
 |`iptables_whitelist`|[]|IPs or ranges to always allow|
 |`iptables_blacklist`|[]|IPs or ranges to always block|
@@ -128,7 +128,6 @@ ansible-galaxy install capnspacehook.iptables
   roles:
     - capnspacehook.iptables
   vars:
-    iptables_log_limit: 1/sec
     iptables_allow_inbound:
       - name: postgres
         port: 5432
