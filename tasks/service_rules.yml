@@ -73,7 +73,7 @@
   iptables_raw:
     name: "allow-{{ item.name }}-inbound-closed"
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight | int + 1}}"
+    weight: "{{ item.weight | int + 1 }}"
     rules: |
       -A {{ current_output_established_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
