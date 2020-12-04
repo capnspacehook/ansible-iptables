@@ -6,6 +6,7 @@
     current_output_new_chain: "{{ item.name | upper }}_NEW_OUTPUT"
     current_input_accept_log_chain: "{{ item.name | upper }}_INPUT_ACCEPT_LOG"
     current_output_accept_log_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT_LOG"
+    current_output_drop_log_chain: "{{ item.name | upper }}_OUTPUT_DROP_LOG"
 
 - name: "Firewall rule - create {{ item.name }} inbound chains"
   iptables_raw:
@@ -72,7 +73,7 @@
   iptables_raw:
     name: "allow-{{ item.name }}-inbound-closed"
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight }}"
+    weight: "{{ item.weight | int + 1}}"
     rules: |
       -A {{ current_output_established_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
@@ -81,9 +82,39 @@
   iptables_raw:
     name: "allow-{{ item.name }}-outbound-closed"
     state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0) and (item.proto | lower == 'tcp')) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight }}"
+    weight: "{{ item.weight | int + 1 }}"
     rules: |
       -A {{ current_output_new_chain }} -m owner ! --socket-exists -j ACCEPT
+  notify: Persist rules
+
+- name: "Firewall rule - create {{ item.name }} outbound drop logging chain"
+  include_tasks: log_chain.yml
+  loop:
+    - name: "{{ item.name }}-outbound-drop-chain"
+      rule_name: "logging-{{ item.name }}-outbound-drop-chain"
+      state: "{{ ((item.state == 'present') and (item.users | length > 0)) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_output_drop_log_chain }}"
+      prefix: "{{ item.name | upper }}:OUTPUT:DROP:"
+      action: DROP
+  loop_control:
+    loop_var: log_rule
+
+- name: Firewall rule - log dropped {{ item.name }} established outbound traffic
+  iptables_raw:
+    name: "log-{{ item.name }}-established-oubound-dropped"
+    state: "{{ ((item.state == 'present') and (item.allow_inbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_output_established_chain }} -j {{ current_output_drop_log_chain }}
+  notify: Persist rules
+
+- name: Firewall rule - log dropped {{ item.name }} new outbound traffic
+  iptables_raw:
+    name: "log-{{ item.name }}-new-oubound-dropped"
+    state: "{{ ((item.state == 'present') and (item.allow_outbound | bool) and (item.users | length > 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_output_new_chain }} -j {{ current_output_drop_log_chain }}
   notify: Persist rules
 
 - name: "Firewall rule - create {{ item.name }} inbound accept logging chain"
