@@ -7,11 +7,10 @@ Default rules are:
 - allow all loopback traffic
 - block invalid packets, TCP portscan packets
 - block all traffic involving bogons (martians)
-- allow SSH inbound
-- allow DNS, HTTP, and HTTPS outbound for updating
-- allow NTP outbound
 - block deprecated ICMP messages
 - log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic seperately
+
+Note that no other traffic is allowed inbound/outbound by default, if you want specific ports opened you will have to specify that yourself.
 
 In addition to this, a package to persist `iptables` rules upon reboot is installed and configured, and if bogon or host banning is enabled, `ipset` is installed.
 A script is also installed that persists `ipset` sets upon reboot as well.
@@ -38,31 +37,6 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 |`iptables_ban_expire`|10800000|amount of milliseconds to remember hosts that triggered DROP rules|
 |`iptables_ban_duration`|600|amount of seconds to ban offending hosts|
 |`iptables_block_attacks`|true|true if you want to block invalid and portscanning TCP packets|
-|`iptables_allow_ssh_inbound`|true|true if you want to allow SSH inbound|
-|`iptables_ssh_inbound_port`|22|port to allow SSH inbound on|
-|`iptables_allow_ssh_outbound`|false|true if you want to allow SSH outbound|
-|`iptables_ssh_outbound_ports`|22|ports you want to allow SSH outbound on|
-|`iptables_ssh_users`|root|users that owns the SSH daemon and/or that should be able to make SSH connections|
-|`iptables_allow_ntp_outbound`|true|true if you want to allow NTP outbound|
-|`iptables_ntp_outbound_ports`|123|ports you want to allow NTP outbound on|
-|`iptables_allow_ntp_inbound`|false|true if you want to allow NTP inbound|
-|`iptables_ntp_inbound_port`|123|port to allow NTP inbound on|
-|`iptables_ntp_users`|root|users that owns the NTP daemon and/or that should be able to make NTP connections|
-|`iptables_allow_dns_inbound`|false|true if you want to allow DNS inbound|
-|`iptables_dns_inbound_port`|53|port to allow DNS inbound on|
-|`iptables_allow_dns_outbound`|true|true if you want to allow DNS outbound|
-|`iptables_dns_outbound_ports`|53|ports you want to allow DNS outbound on|
-|`iptables_dns_users`|root|users that owns the DNS daemon and/or that should be able to make DNS connections|
-|`iptables_allow_http_inbound`|false|true if you want to allow HTTP inbound|
-|`iptables_http_inbound_port`|80|port to allow HTTP inbound on|
-|`iptables_allow_http_outbound`|true|true if you want to allow HTTP outbound|
-|`iptables_http_outbound_ports`|80|ports you want to allow HTTP outbound on|
-|`iptables_http_users`|root|users that owns the HTTP daemon and/or that should be able to make HTTP connections|
-|`iptables_allow_https_inbound`|false|true if you want to allow HTTPS inbound|
-|`iptables_https_inbound_port`|443|port to allow HTTPS inbound on|
-|`iptables_allow_https_outbound`|true|true if you want to allow HTTPS outbound|
-|`iptables_https_outbound_ports`|443|ports you want to allow HTTPS outbound on|
-|`iptables_https_users`|root|users that owns the HTTPS daemon and/or that should be able to make HTTPS connections|
 |`iptables_allow_ping_inbound`|false|true if you want to make your box pingable|
 |`iptables_allow_ping_outbound`|false|true if you want to ping other boxes|
 |`iptables_ping_users`|root|users to allow sending ICMP echo-requests outbound|
@@ -74,7 +48,7 @@ This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_ra
 
 ## Outbound Ports
 
-Up to 15 ports can be specified for any `*_outbound_ports` variables. Ports must be separated with a comma with no whitespace in between, ex. `80,443`. Port ranges can be specified by entering a colon between two ports, ex. `1024:65535`. This counts as two out of the 15 max ports.
+Up to 15 ports can be specified for outbound rules. Ports must be separated with a comma with no whitespace in between, ex. `80,443`. Port ranges can be specified by entering a colon between two ports, ex. `1024:65535`. This counts as two out of the 15 max ports.
 
 ## Users Filering
 
