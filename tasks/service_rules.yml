@@ -2,11 +2,11 @@
 
 - name: "Set {{ item.name }} chain names"
   set_fact:
-    current_output_established_chain: "{{ item.name | upper }}_EST_OUTPUT"
-    current_output_new_chain: "{{ item.name | upper }}_NEW_OUTPUT"
-    current_input_accept_log_chain: "{{ item.name | upper }}_INPUT_ACCEPT_LOG"
-    current_output_accept_log_chain: "{{ item.name | upper }}_OUTPUT_ACCEPT_LOG"
-    current_output_drop_log_chain: "{{ item.name | upper }}_OUTPUT_DROP_LOG"
+    current_output_established_chain: "{{ item.name | upper }}_EST_OUT"
+    current_output_new_chain: "{{ item.name | upper }}_NEW_OUT"
+    current_input_accept_log_chain: "{{ item.name | upper }}_IN_ACCEPT_LOG"
+    current_output_accept_log_chain: "{{ item.name | upper }}_OUT_ACCEPT_LOG"
+    current_output_drop_log_chain: "{{ item.name | upper }}_OUT_DROP_LOG"
 
 - name: "Firewall rule - create {{ item.name }} inbound chains"
   iptables_raw:

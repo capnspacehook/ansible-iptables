@@ -94,7 +94,7 @@
   loop_control:
     loop_var: log_rule
 
-- name: Firewall rule - allow blacklisted hosts/ranges
+- name: Firewall rule - block blacklisted hosts/ranges
   iptables_raw:
     name: global-blacklist
     state: "{{ (iptables_blacklist | length > 0) | ternary('present', 'absent') }}"
