@@ -1,0 +1,78 @@
+---
+
+- name: "Set {{ list.name }} set names"
+  set_fact:
+    current_allowed_set: "{{ list.name | lower }}_allow"
+    current_blocked_set: "{{ list.name | lower }}_block"
+
+- name: Create ipset for allowed {{ list.name }} hosts/ranges
+  command: "ipset create {{ current_allowed_set }} hash:net family inet"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
+  when: list.allowed | length > 0
+
+- name: Destroy ipset for allowed {{ list.name }} hosts/ranges
+  command: "ipset destroy {{ current_allowed_set }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: list.allowed | length == 0
+
+- name: Add allowed {{ list.name }} hosts/ranges to ipset
+  command: "ipset add {{ current_allowed_set }} {{ entry }}"
+  register: ipset_out
+  changed_when: |
+    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  failed_when: |
+    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  loop: "{{ list.allowed }}"
+  loop_control:
+    loop_var: entry
+  notify: Persist rules
+
+- name: Firewall rule - allow allowed {{ list.name }} hosts/ranges
+  iptables_raw:
+    name: "{{ list.name }}-allow"
+    state: "{{ (list.allowed | length > 0) | ternary('present', 'absent') }}"
+    weight: "{{ list.weight }}"
+    rules: |
+      -A INPUT -m set ! --match-set {{ current_allowed_set }} src -j {{ list.allowed_inbound_target }}
+      -A OUTPUT -m set ! --match-set {{ current_allowed_set }} dst -j {{ list.allowed_outbound_target }}
+  notify: Persist rules
+
+- name: Create ipset for blocked {{ list.name }} hosts/ranges
+  command: "ipset create {{ current_blocked_set }} hash:net family inet"
+  register: ipset_out
+  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
+  when: list.blocked | length > 0
+
+- name: Destroy ipset for blocked {{ list.name }} hosts/ranges
+  command: "ipset destroy {{ current_blocked_set }}"
+  register: ipset_out
+  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
+  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+  when: list.blocked | length == 0
+
+- name: Add blocked {{ list.name }} hosts/ranges to ipset
+  command: "ipset add {{ current_blocked_set }} {{ entry }}"
+  register: ipset_out
+  changed_when: |
+    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  failed_when: |
+    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
+  loop: "{{ list.blocked }}"
+  loop_control:
+    loop_var: entry
+  notify: Persist rules
+
+- name: Firewall rule - block blocked {{ list.name }} hosts/ranges
+  iptables_raw:
+    name: "{{ list.name }}-block"
+    state: "{{ (list.blocked | length > 0) | ternary('present', 'absent') }}"
+    weight: "{{ list.weight }}"
+    rules: |
+      -A INPUT -m set --match-set {{ current_blocked_set }} src -j {{ list.blocked_inbound_target }}
+      -A OUTPUT -m set --match-set {{ current_blocked_set }} dst -j {{ list.blocked_outbound_target }}
+  notify: Persist rules

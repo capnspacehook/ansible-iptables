@@ -8,8 +8,8 @@ iptables_log_level: info
 
 iptables_block_attacks: true
 
-iptables_whitelist: []
-iptables_blacklist: []
+iptables_global_allow: []
+iptables_global_block: []
 
 iptables_ban_hosts: false
 iptables_ban_interval: 5/hour

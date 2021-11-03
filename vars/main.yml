@@ -8,10 +8,10 @@ local_ip_inbound_log_chain: LOCAL_IP_IN_LOG
 local_ip_outbound_log_chain: LOCAL_IP_OUT_LOG
 portscans_inbound_log_chain: PORTSCAN_LOG
 
-global_whitelist_inbound_log_chain: G_WHITELIST_IN_LOG
-global_whitelist_outbound_log_chain: G_WHITELIST_OUT_LOG
-global_blacklist_inbound_log_chain: G_BLACKLIST_IN_LOG
-global_blacklist_outbound_log_chain: G_BLACKLIST_OUT_LOG
+global_allow_inbound_log_chain: G_ALLOW_IN_LOG
+global_allow_outbound_log_chain: G_ALLOW_OUT_LOG
+global_block_inbound_log_chain: G_BLOCK_IN_LOG
+global_block_outbound_log_chain: G_BLOCK_OUT_LOG
 
 ping_inbound_log_chain: PING_IN_LOG
 ping_outbound_log_chain: PING_OUT_LOG
@@ -35,8 +35,6 @@ ipset_save_file: /etc/iptables/ipset
 user_service_inbound_rules: []
 user_service_outbound_rules: []
 
-ipset_whitelist: global_whitelist
-ipset_blacklist: global_blacklist
 ipset_banned: banned_hosts
 ipset_bogons: bogons
 
