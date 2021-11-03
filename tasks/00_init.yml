@@ -29,7 +29,7 @@
     ban_chain: DROP
   when: not iptables_ban_hosts
 
-- name: Firewall rule - create default logging chain
+- name: Create default logging chain
   include_tasks: log_chain.yml
   loop:
     - name: output-drop

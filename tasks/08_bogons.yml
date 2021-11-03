@@ -10,7 +10,7 @@
     bogon_ips: []
   when: not iptables_block_bogons
 
-- name: Firewall rule - create bogon logging chains
+- name: Create bogon logging chains
   include_tasks: log_chain.yml
   loop:
     - name: bogons-inbound-drop-chain

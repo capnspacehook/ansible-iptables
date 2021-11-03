@@ -9,7 +9,7 @@
       -N {{ ping_filter_user }}
   notify: Persist rules
 
-- name: Firewall rule - create outbound ping logging chain
+- name: Create outbound ping logging chain
   include_tasks: log_chain.yml
   loop:
     - name: ping-outbound-accept-chain
@@ -36,7 +36,7 @@
   loop: "{{ iptables_ping_users }}"
   notify: Persist rules
 
-- name: Firewall rule - create inbound ping logging chain
+- name: Create inbound ping logging chain
   include_tasks: log_chain.yml
   loop:
     - name: ping-inbound-accept-chain
@@ -80,7 +80,7 @@
       -A INPUT -p icmp --icmp-type echo-reply -m state --state ESTABLISHED,RELATED -m length --length 84 -j ACCEPT
   notify: Persist rules
 
-- name: Firewall rule - create deprecated ICMP logging chain
+- name: Create deprecated ICMP logging chain
   include_tasks: log_chain.yml
   loop:
     - name: icmp-inbound-drop-chain

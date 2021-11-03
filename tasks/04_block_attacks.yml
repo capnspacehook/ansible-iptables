@@ -1,6 +1,6 @@
 ---
 
-- name: Firewall rule - create invalid traffic logging chains
+- name: Create invalid traffic logging chains
   include_tasks: log_chain.yml
   loop:
     - name: portscans-inbound-drop-chain

@@ -9,7 +9,7 @@
       -A OUTPUT -o lo -j ACCEPT
   notify: Persist rules
 
-- name: Firewall rule - create invalid traffic logging chains
+- name: Create invalid traffic logging chains
   include_tasks: log_chain.yml
   loop:
     - name: invalid-inbound-drop-chain
@@ -36,7 +36,7 @@
       -A OUTPUT -m state --state INVALID -j {{ invalid_outbound_log_chain }}
   notify: Persist rules
 
-- name: Firewall rule - create local ip spoof logging chains
+- name: Create local ip spoof logging chains
   include_tasks: log_chain.yml
   loop:
     - name: local-ip-spoof-inbound-drop-chain
@@ -63,7 +63,7 @@
       -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ local_ip_outbound_log_chain }}
   notify: Persist rules
 
-- name: Firewall rule - create chain to ban and log
+- name: Create chain to ban and log
   include_tasks: log_chain.yml
   loop:
     - name: log-and-ban-chain

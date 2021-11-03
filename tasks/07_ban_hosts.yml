@@ -24,7 +24,7 @@
       -A {{ ban_chain }} -j DROP
   notify: Persist rules
 
-- name: Firewall rule - create chain to ban and log
+- name: Create chain to ban and log
   include_tasks: log_chain.yml
   loop:
     - name: log-banned-chain

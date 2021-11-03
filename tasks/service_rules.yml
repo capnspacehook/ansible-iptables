@@ -44,7 +44,7 @@
     loop_var: user
   notify: Persist rules
 
-- name: "Firewall rule - create {{ item.name }} outbound accept logging chain"
+- name: "Create {{ item.name }} outbound accept logging chain"
   include_tasks: log_chain.yml
   loop:
     - name: "{{ item.name }}-outbound-accept-chain"
@@ -87,7 +87,7 @@
       -A {{ current_output_new_chain }} -m owner ! --socket-exists -j ACCEPT
   notify: Persist rules
 
-- name: "Firewall rule - create {{ item.name }} outbound drop logging chain"
+- name: "Create {{ item.name }} outbound drop logging chain"
   include_tasks: log_chain.yml
   loop:
     - name: "{{ item.name }}-outbound-drop-chain"
@@ -117,7 +117,7 @@
       -A {{ current_output_new_chain }} -j {{ current_output_drop_log_chain }}
   notify: Persist rules
 
-- name: "Firewall rule - create {{ item.name }} inbound accept logging chain"
+- name: "Create {{ item.name }} inbound accept logging chain"
   include_tasks: log_chain.yml
   loop:
     - name: "{{ item.name }}-inbound-accept-chain"

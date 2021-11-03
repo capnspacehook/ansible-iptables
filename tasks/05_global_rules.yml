@@ -1,6 +1,6 @@
 ---
 
-- name: Firewall rule - create global allow and block logging chains
+- name: Create global allow and block logging chains
   include_tasks: log_chain.yml
   loop:
     - name: global-allow-inbound-drop-chain
