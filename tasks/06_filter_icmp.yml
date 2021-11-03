@@ -14,7 +14,7 @@
   loop:
     - name: ping-outbound-accept-chain
       rule_name: logging-ping-outbound-accept-chain
-      state: "{{ (iptables_allow_ping_outbound | bool) | ternary('present', 'absent') }}"
+      state: "{{ ((iptables_allow_ping_inbound | bool) or (iptables_allow_ping_outbound | bool)) | ternary('present', 'absent') }}"
       chain_name: "{{ ping_outbound_log_chain }}"
       prefix: "PING:OUTPUT:ACCEPT:"
       action: ACCEPT
@@ -41,7 +41,7 @@
   loop:
     - name: ping-inbound-accept-chain
       rule_name: logging-ping-inbound-accept-chain
-      state: "{{ (iptables_allow_ping_inbound | bool) | ternary('present', 'absent') }}"
+      state: "{{ ((iptables_allow_ping_inbound | bool) or (iptables_allow_ping_outbound | bool)) | ternary('present', 'absent') }}"
       chain_name: "{{ ping_inbound_log_chain }}"
       prefix: "PING:INPUT:ACCEPT:"
       action: ACCEPT
