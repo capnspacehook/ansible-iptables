@@ -1,29 +1,14 @@
 ---
 
-- name: Create ipset for bogons
-  command: "ipset create {{ ipset_bogons }} hash:net family inet"
-  register: ipset_out
-  changed_when: "'set with the same name already exists' not in ipset_out.stderr"
-  failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
+- name: "Set bogon IPs"
+  set_fact:
+    bogon_ips: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
   when: iptables_block_bogons | bool
 
-- name: Destroy ipset for bogons
-  command: "ipset destroy {{ ipset_bogons }}"
-  register: ipset_out
-  changed_when: "'set with the given name does not exist' not in ipset_out.stderr"
-  failed_when: "ipset_out.rc != 0 and 'set with the given name does not exist' not in ipset_out.stderr"
+- name: "Unset bogon IPs"
+  set_fact:
+    bogon_ips: []
   when: not iptables_block_bogons
-
-- name: Add bogons to ipset
-  command: "ipset add {{ ipset_bogons }} {{ item }}"
-  register: ipset_out
-  changed_when: |
-    "Element cannot be added to the set: it's already added" not in ipset_out.stderr
-  failed_when: |
-    ipset_out.rc != 0 and "Element cannot be added to the set: it's already added" not in ipset_out.stderr
-  loop: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
-  when: iptables_block_bogons | bool
-  notify: Persist rules
 
 - name: Firewall rule - create bogon logging chains
   include_tasks: log_chain.yml
@@ -34,7 +19,6 @@
       chain_name: "{{ bogons_inbound_log_chain }}"
       prefix: "BOGON:INPUT:DROP:"
       action: DROP
-      log_chain: true
     - name: bogons-outbound-drop-chain
       rule_name: logging-bogons-outbound-drop-chain
       state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
@@ -44,12 +28,16 @@
   loop_control:
     loop_var: log_rule
 
-- name: Firewall rule - block all traffic involving bogons
-  iptables_raw:
-    name: block-bogons
-    state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
-    weight: 17
-    rules: |
-      -A INPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ bogons_inbound_log_chain }}
-      -A OUTPUT -m set --match-set {{ ipset_bogons }} src,dst -j {{ bogons_outbound_log_chain }}
-  notify: Persist rules
+- name: Block all traffic involving bogons
+  include_tasks: create_lists.yml
+  loop:
+    - name: bogons
+      weight: 17
+      allowed: []
+      blocked: "{{ bogon_ips }}"
+      allowed_inbound_target: ""
+      allowed_outbound_target: ""
+      blocked_inbound_target: "{{ bogons_inbound_log_chain }}"
+      blocked_outbound_target: "{{ bogons_outbound_log_chain }}"
+  loop_control:
+    loop_var: list
