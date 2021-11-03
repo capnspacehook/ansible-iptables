@@ -64,6 +64,8 @@ The `iptables_allow_inbound` and `iptables_allow_outbound` variables can be used
 - port: the port to allow for inbound rules
 - ports: the port(s) to allow for outbound rules, up to 15 ports can be specified
 - users: optional; the users to allow
+- allowed: optional; IPs to allow
+- blocked: optional; IPs to block
 
 ## ICMP Filtering
 

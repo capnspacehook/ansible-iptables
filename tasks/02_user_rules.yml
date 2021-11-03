@@ -13,6 +13,8 @@
         'allow_outbound': false,
         'outbound_ports': [],
         'users': item.users | default([]),
+        'allowed': item.allowed | default([]),
+        'blocked': item.blocked | default([]),
       }] }}
   loop: "{{ iptables_allow_inbound }}"
 
@@ -29,6 +31,8 @@
         'allow_outbound': true,
         'outbound_ports': item.ports,
         'users': item.users | default([]),
+        'allowed': item.allowed | default([]),
+        'blocked': item.blocked | default([]),
       }] }}
   loop: "{{ iptables_allow_outbound }}"
 

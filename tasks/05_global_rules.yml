@@ -37,6 +37,8 @@
       weight: 15
       allowed: "{{ iptables_global_allow }}"
       blocked: "{{ iptables_global_block }}"
+      inbound_chain: INPUT
+      outbound_chain: OUTPUT
       allowed_inbound_target: "{{ global_allow_inbound_log_chain }}"
       allowed_outbound_target: "{{ global_allow_outbound_log_chain }}"
       blocked_inbound_target: "{{ global_block_inbound_log_chain }}"

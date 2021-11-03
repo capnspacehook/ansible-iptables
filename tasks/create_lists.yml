@@ -37,8 +37,8 @@
     state: "{{ (list.allowed | length > 0) | ternary('present', 'absent') }}"
     weight: "{{ list.weight }}"
     rules: |
-      -A INPUT -m set ! --match-set {{ current_allowed_set }} src -j {{ list.allowed_inbound_target }}
-      -A OUTPUT -m set ! --match-set {{ current_allowed_set }} dst -j {{ list.allowed_outbound_target }}
+      -A {{ list.inbound_chain }} -m set ! --match-set {{ current_allowed_set }} src -j {{ list.allowed_inbound_target }}
+      -A {{ list.outbound_chain }} -m set ! --match-set {{ current_allowed_set }} dst -j {{ list.allowed_outbound_target }}
   notify: Persist rules
 
 - name: Create ipset for blocked {{ list.name }} hosts/ranges
@@ -73,6 +73,6 @@
     state: "{{ (list.blocked | length > 0) | ternary('present', 'absent') }}"
     weight: "{{ list.weight }}"
     rules: |
-      -A INPUT -m set --match-set {{ current_blocked_set }} src -j {{ list.blocked_inbound_target }}
-      -A OUTPUT -m set --match-set {{ current_blocked_set }} dst -j {{ list.blocked_outbound_target }}
+      -A {{ list.inbound_chain }} -m set --match-set {{ current_blocked_set }} src -j {{ list.blocked_inbound_target }}
+      -A {{ list.outbound_chain }} -m set --match-set {{ current_blocked_set }} dst -j {{ list.blocked_outbound_target }}
   notify: Persist rules

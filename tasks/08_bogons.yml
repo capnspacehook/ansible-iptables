@@ -35,6 +35,8 @@
       weight: 17
       allowed: []
       blocked: "{{ bogon_ips }}"
+      inbound_chain: INPUT
+      outbound_chain: OUTPUT
       allowed_inbound_target: ""
       allowed_outbound_target: ""
       blocked_inbound_target: "{{ bogons_inbound_log_chain }}"
