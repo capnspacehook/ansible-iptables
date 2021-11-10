@@ -61,6 +61,16 @@
   notify: Persist rules
   loop: "{{ user_service_outbound_chains | unique | list }}"
 
+- name: Firewall rule - block unmatched {{ item.name }} outbound traffic
+  iptables_raw:
+    name: "block-unmatched-outbound-{{ item.chain | lower }}"
+    state: present
+    weight: 26
+    rules: |
+      -A {{ item.chain }} -j {{ log_chain_output_drop }}
+  notify: Persist rules
+  loop: "{{ user_service_outbound_chains | unique | list }}"
+
 - name: Create user outbound allow rules
   include_tasks: service_rules.yml
   loop: "{{ user_service_outbound_rules }}"

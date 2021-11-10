@@ -26,12 +26,19 @@
 
 - name: Set ban chain to simply drop if host banning is disabled
   set_fact:
+    log_and_ban_chain: LOG_IN_DROP
     ban_chain: DROP
   when: not iptables_ban_hosts
 
 - name: Create default logging chain
   include_tasks: log_chain.yml
   loop:
+    - name: log-and-ban-chain
+      rule_name: log-and-ban-chain
+      state: present
+      chain_name: "{{ log_and_ban_chain }}"
+      prefix: "INPUT:DROP:"
+      action: "{{ ban_chain }}"
     - name: output-drop
       rule_name: logging-output-drop-chain
       state: present

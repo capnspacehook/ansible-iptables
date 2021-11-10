@@ -59,11 +59,6 @@
       -N {{ current_input_list_chain }}
   notify: Persist rules
 
-- name: Set inbound {{ item.name }} chains if IP filtering is disabled
-  set_fact:
-    current_input_list_chain: "{{ current_input_accept_log_chain }}"
-  when: (item.allowed | length == 0) and (item.blocked | length == 0)
-
 - name: Firewall rule - create {{ item.name }} outbound IP chain if IP filtering is enabled
   iptables_raw:
     name: "create-{{ item.name }}-outbound-list-chain"
@@ -73,8 +68,9 @@
       -N {{ current_output_list_chain }}
   notify: Persist rules
 
-- name: Set outbound {{ item.name }} chains if IP filtering is disabled
+- name: Set {{ item.name }} chains if IP filtering is disabled
   set_fact:
+    current_input_list_chain: "{{ current_input_accept_log_chain }}"
     current_output_list_chain: "{{ current_output_accept_log_chain }}"
   when: (item.allowed | length == 0) and (item.blocked | length == 0)
 
@@ -82,12 +78,9 @@
   iptables_raw:
     name: "filter-{{ item.name }}-new-inbound-list"
     state: "{{ ((item.state == 'present') and (item.allow_inbound | bool)) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight }}"
+    weight: "{{ item.weight | int + 1 }}"
     rules: |
       -A {{ current_input_chain }} -j {{ current_input_list_chain }}
-  loop: "{{ item.users }}"
-  loop_control:
-    loop_var: user
   notify: Persist rules
 
 - name: Firewall rule - filter new outbound {{ item.name }} traffic by user if user filtering is enabled

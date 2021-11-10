@@ -63,18 +63,6 @@
       -A OUTPUT -d {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} -j {{ local_ip_outbound_log_chain }}
   notify: Persist rules
 
-- name: Create chain to ban and log
-  include_tasks: log_chain.yml
-  loop:
-    - name: log-and-ban-chain
-      rule_name: log-and-ban-chain
-      state: present
-      chain_name: "{{ log_and_ban_chain }}"
-      prefix: "INPUT:DROP:"
-      action: "{{ ban_chain }}"
-  loop_control:
-    loop_var: log_rule
-
 - name: Firewall rule - log dropped packets that fall through
   iptables_raw:
     name: log-dropped

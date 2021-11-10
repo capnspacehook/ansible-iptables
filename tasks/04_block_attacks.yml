@@ -7,7 +7,7 @@
       rule_name: logging-portscans-inbound-drop-chain
       state: "{{ (iptables_block_attacks | bool) | ternary('present', 'absent') }}"
       chain_name: "{{ portscans_inbound_log_chain }}"
-      prefix: "INVALID:INPUT:DROP:"
+      prefix: "PORTSCAN:INPUT:DROP:"
       action: "{{ ban_chain }}"
   loop_control:
     loop_var: log_rule
