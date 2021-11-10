@@ -34,6 +34,9 @@
   include_tasks: create_lists.yml
   loop:
     - name: global
+      match_blocked: true
+      filter_inbound: true
+      filter_outbound: true
       weight: 15
       allowed: "{{ iptables_global_allow }}"
       blocked: "{{ iptables_global_block }}"

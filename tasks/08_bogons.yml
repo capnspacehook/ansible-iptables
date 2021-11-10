@@ -32,6 +32,9 @@
   include_tasks: create_lists.yml
   loop:
     - name: bogons
+      match_blocked: true
+      filter_inbound: true
+      filter_outbound: true
       weight: 17
       allowed: []
       blocked: "{{ bogon_ips }}"

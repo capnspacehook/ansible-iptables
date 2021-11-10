@@ -12,9 +12,10 @@
         'inbound_port': item.port,
         'allow_outbound': false,
         'outbound_ports': [],
-        'users': item.users | default([]),
+        'users': [],
         'allowed': item.allowed | default([]),
         'blocked': item.blocked | default([]),
+        'root_chain': '',
       }] }}
   loop: "{{ iptables_allow_inbound }}"
 
@@ -33,12 +34,32 @@
         'users': item.users | default([]),
         'allowed': item.allowed | default([]),
         'blocked': item.blocked | default([]),
+        'root_chain': (item.proto + '-' + (item.ports | string) | replace(',', '_') | replace(':', '-')) | upper,
+      }] }}
+    user_service_outbound_chains: >
+      {{ user_service_outbound_chains|default([]) + [{
+        'chain': (item.proto + '-' + (item.ports | string) | replace(',', '_') | replace(':', '-')) | upper,
+        'proto': item.proto,
+        'ports': item.ports,
       }] }}
   loop: "{{ iptables_allow_outbound }}"
 
 - name: Create user inbound allow rules
   include_tasks: service_rules.yml
   loop: "{{ user_service_inbound_rules }}"
+
+- name: Firewall rule - allow port(s) {{ item.ports }} over {{ item.proto }} outbound
+  iptables_raw:
+    name: "allow-{{ item.chain | lower }}-outbound"
+    state: present
+    weight: 24
+    rules: |
+      -N {{ item.chain }}
+      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ item.chain }}
+      -A {{ item.chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+  notify: Persist rules
+  loop: "{{ user_service_outbound_chains | unique | list }}"
 
 - name: Create user outbound allow rules
   include_tasks: service_rules.yml

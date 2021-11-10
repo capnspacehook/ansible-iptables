@@ -1,9 +1,11 @@
 ---
 
-- name: "Set {{ list.name }} set names"
+- name: "Set {{ list.name }} list variables"
   set_fact:
     current_allowed_set: "{{ list.name | lower }}_allow"
     current_blocked_set: "{{ list.name | lower }}_block"
+    current_allow_negate: "{{ list.match_blocked | bool | ternary('!', '') }}"
+    current_block_negate: "{{ list.match_blocked | bool | ternary('', '!') }}"
 
 - name: Create ipset for allowed {{ list.name }} hosts/ranges
   command: "ipset create {{ current_allowed_set }} hash:net family inet"
@@ -31,14 +33,22 @@
     loop_var: entry
   notify: Persist rules
 
-- name: Firewall rule - allow allowed {{ list.name }} hosts/ranges
+- name: Firewall rule - allow inbound allowed {{ list.name }} hosts/ranges
   iptables_raw:
-    name: "{{ list.name }}-allow"
-    state: "{{ (list.allowed | length > 0) | ternary('present', 'absent') }}"
+    name: "{{ list.name }}-inbound-allow"
+    state: "{{ ((list.allowed | length > 0) and (list.filter_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ list.weight }}"
     rules: |
-      -A {{ list.inbound_chain }} -m set ! --match-set {{ current_allowed_set }} src -j {{ list.allowed_inbound_target }}
-      -A {{ list.outbound_chain }} -m set ! --match-set {{ current_allowed_set }} dst -j {{ list.allowed_outbound_target }}
+      -A {{ list.inbound_chain }} -m set {{ current_allow_negate }} --match-set {{ current_allowed_set }} src -j {{ list.allowed_inbound_target }}
+  notify: Persist rules
+
+- name: Firewall rule - allow outbound allowed {{ list.name }} hosts/ranges
+  iptables_raw:
+    name: "{{ list.name }}-outbound-allow"
+    state: "{{ ((list.allowed | length > 0) and (list.filter_outbound | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ list.weight }}"
+    rules: |
+      -A {{ list.outbound_chain }} -m set {{ current_allow_negate }} --match-set {{ current_allowed_set }} dst -j {{ list.allowed_outbound_target }}
   notify: Persist rules
 
 - name: Create ipset for blocked {{ list.name }} hosts/ranges
@@ -67,12 +77,20 @@
     loop_var: entry
   notify: Persist rules
 
-- name: Firewall rule - block blocked {{ list.name }} hosts/ranges
+- name: Firewall rule - block inbound blocked {{ list.name }} hosts/ranges
   iptables_raw:
-    name: "{{ list.name }}-block"
-    state: "{{ (list.blocked | length > 0) | ternary('present', 'absent') }}"
+    name: "{{ list.name }}-inbound-block"
+    state: "{{ ((list.blocked | length > 0) and (list.filter_inbound | bool)) | ternary('present', 'absent') }}"
     weight: "{{ list.weight }}"
     rules: |
-      -A {{ list.inbound_chain }} -m set --match-set {{ current_blocked_set }} src -j {{ list.blocked_inbound_target }}
-      -A {{ list.outbound_chain }} -m set --match-set {{ current_blocked_set }} dst -j {{ list.blocked_outbound_target }}
+      -A {{ list.inbound_chain }} -m set {{ current_block_negate }} --match-set {{ current_blocked_set }} src -j {{ list.blocked_inbound_target }}
+  notify: Persist rules
+
+- name: Firewall rule - block outbound blocked {{ list.name }} hosts/ranges
+  iptables_raw:
+    name: "{{ list.name }}-outbound-block"
+    state: "{{ ((list.blocked | length > 0) and (list.filter_outbound | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ list.weight }}"
+    rules: |
+      -A {{ list.outbound_chain }} -m set {{ current_block_negate }} --match-set {{ current_blocked_set }} dst -j {{ list.blocked_outbound_target }}
   notify: Persist rules
