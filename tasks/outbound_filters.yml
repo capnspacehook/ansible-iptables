@@ -24,7 +24,7 @@
       state: "{{ filter.state }}"
       chain_name: "{{ filter_output_accept_log_chain }}"
       prefix: "{{ filter.name | upper }}:OUTPUT:ACCEPT:"
-      action: ACCEPT
+      action: "{{ filter.action }}"
   loop_control:
     loop_var: log_rule
 
@@ -42,13 +42,14 @@
     filter_output_list_chain: "{{ filter_output_accept_log_chain }}"
   when: (filter.allowed | length == 0) and (filter.blocked | length == 0)
 
-- name: Firewall rule - filter new outbound {{ filter.name }} traffic by user if user filtering is enabled
+- name: Firewall rule - filter outbound {{ filter.name }} traffic by user if user filtering is enabled
   iptables_raw:
-    name: "filter-{{ filter.name }}-new-outbound-user-{{ user }}"
+    name: "filter-{{ filter.name }}-outbound-user-{{ user }}"
     state: "{{ ((filter.state == 'present') and (filter.users | length > 0)) | ternary('present', 'absent') }}"
     weight: "{{ filter.weight }}"
     rules: |
-      -A {{ filter_output_chain }} -m owner --uid-owner {{ user }} -j {{ filter_output_list_chain }}
+      -A {{ filter_output_chain }} -m owner --uid-owner {{ user }} -m state --state NEW -j {{ filter_output_list_chain }}
+      -A {{ filter_output_chain }} -m owner --uid-owner {{ user }} -m state --state ESTABLISHED,RELATED -j {{ filter.est_action }}
   loop: "{{ filter.users }}"
   loop_control:
     loop_var: user

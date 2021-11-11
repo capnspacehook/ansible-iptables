@@ -15,8 +15,8 @@
     rules: |
       -N {{ current_input_chain }}
       -A INPUT -p {{ item.proto }} --dport {{ item.port }} -j {{ current_input_chain }}
-      -A {{ current_input_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A {{ current_input_chain }} -m state --state ESTABLISHED,RELATED -j {{ item.inbound_est_action }}
+      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
   notify: Persist rules
 
 - name: Create {{ item.name }} logging chains
@@ -27,7 +27,7 @@
       state: "{{ item.state }}"
       chain_name: "{{ current_input_accept_log_chain }}"
       prefix: "{{ item.name | upper }}:INPUT:ACCEPT:"
-      action: ACCEPT
+      action: "{{ item.action }}"
     - name: "{{ item.name }}-inbound-drop-chain"
       rule_name: "logging-{{ item.name }}-inbound-drop-chain"
       state: "{{ ((item.state == 'present') and ((item.allowed | length > 0) or (item.blocked | length > 0))) | ternary('present', 'absent') }}"
@@ -95,4 +95,5 @@
     weight: 4
     rules: |
       -A INPUT -i lo -p {{ item.proto }} --dport {{ item.port }} -j {{ current_input_chain }}
+      -A OUTPUT -o lo -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
   notify: Persist rules

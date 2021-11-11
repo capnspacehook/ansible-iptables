@@ -10,6 +10,9 @@
         'proto': item.proto,
         'port': item.port,
         'filter_loopback': item.filter_loopback | default(false),
+        'action': item.action | default('ACCEPT'),
+        'inbound_est_action': item.inbound_est_action | default('ACCEPT'),
+        'outbound_est_action': item.outbound_est_action | default('ACCEPT'),
         'allowed': item.allowed | default([]),
         'blocked': item.blocked | default([]),
       }] }}
@@ -25,6 +28,9 @@
         'proto': item.proto,
         'ports': item.ports,
         'filter_loopback': item.filter_loopback | default(false),
+        'action': item.action | default('ACCEPT'),
+        'inbound_est_action': item.inbound_est_action | default('ACCEPT'),
+        'outbound_est_action': item.outbound_est_action | default('ACCEPT'),
         'filters': item.filters | default({}),
       }] }}
   loop: "{{ iptables_allow_outbound }}"

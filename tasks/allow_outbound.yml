@@ -15,8 +15,7 @@
     rules: |
       -N {{ current_root_chain }}
       -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
-      -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j {{ item.inbound_est_action }}
   notify: Persist rules
 
 - name: Create {{ item.name }} logging chains
@@ -27,7 +26,7 @@
       state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
       chain_name: "{{ current_output_accept_log_chain }}"
       prefix: "{{ item.name | upper }}:OUTPUT:ACCEPT:"
-      action: ACCEPT
+      action: "{{ item.action }}"
     - name: "{{ item.name }}-outbound-drop-chain"
       rule_name: "logging-{{ item.name }}-outbound-drop-chain"
       state: "{{ ((item.state == 'present') and (item.filters | length > 0)) | ternary('present', 'absent') }}"
@@ -49,6 +48,8 @@
         'users': filter.users | default([]),
         'allowed': filter.allowed | default([]),
         'blocked': filter.blocked | default([]),
+        'action': filter.action | default('ACCEPT'),
+        'est_action': filter.est_action | default(item.outbound_est_action),
       }] }}
   loop: "{{ item.filters }}"
   loop_control:
@@ -59,6 +60,15 @@
   loop: "{{ current_filters }}"
   loop_control:
     loop_var: filter
+
+- name: Firewall rule - allow established {{ item.name }} outbound
+  iptables_raw:
+    name: "allow-established-{{ item.name }}-outbound"
+    state: "{{ item.state }}"
+    weight: "{{ item.weight | int + 1 }}"
+    rules: |
+      -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
+  notify: Persist rules
 
 - name: Firewall rule - block unmatched {{ item.name }} outbound traffic if IP filtering is enabled
   iptables_raw:
@@ -85,4 +95,5 @@
     weight: 4
     rules: |
       -A OUTPUT -o lo -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
+      -A INPUT -i lo -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j {{ item.inbound_est_action }}
   notify: Persist rules
