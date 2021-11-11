@@ -1,0 +1,89 @@
+---
+
+- name: Set {{ item.name }} chain names
+  set_fact:
+    current_input_chain: "{{ item.name | upper }}_IN"
+    current_input_list_chain: "{{ item.name | upper }}_IN_LIST"
+    current_input_accept_log_chain: "{{ item.name | upper }}_IN_ACCEPT_LOG"
+    current_input_drop_log_chain: "{{ item.name | upper }}_IN_DROP_LOG"
+
+- name: Firewall rule - allow {{ item.name }} inbound
+  iptables_raw:
+    name: "allow-{{ item.name }}-inbound"
+    state: "{{ item.state }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -N {{ current_input_chain }}
+      -A INPUT -p {{ item.proto }} --dport {{ item.port }} -j {{ current_input_chain }}
+      -A {{ current_input_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A OUTPUT -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+  notify: Persist rules
+
+- name: Create {{ item.name }} logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: "{{ item.name }}-inbound-accept-chain"
+      rule_name: "logging-{{ item.name }}-inbound-accept-chain"
+      state: "{{ item.state }}"
+      chain_name: "{{ current_input_accept_log_chain }}"
+      prefix: "{{ item.name | upper }}:INPUT:ACCEPT:"
+      action: ACCEPT
+    - name: "{{ item.name }}-inbound-drop-chain"
+      rule_name: "logging-{{ item.name }}-inbound-drop-chain"
+      state: "{{ ((item.state == 'present') and ((item.allowed | length > 0) or (item.blocked | length > 0))) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_input_drop_log_chain }}"
+      prefix: "{{ item.name | upper }}:INPUT:DROP:"
+      action: DROP
+  loop_control:
+    loop_var: log_rule
+
+- name: Firewall rule - create {{ item.name }} inbound IP chain if IP filtering is enabled
+  iptables_raw:
+    name: "create-{{ item.name }}-inbound-list-chain"
+    state: "{{ ((item.state == 'present') and ((item.allowed | length > 0) or (item.blocked | length > 0))) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -N {{ current_input_list_chain }}
+  notify: Persist rules
+
+- name: Set {{ item.name }} chains if IP filtering is disabled
+  set_fact:
+    current_input_list_chain: "{{ current_input_accept_log_chain }}"
+  when: (item.allowed | length == 0) and (item.blocked | length == 0)
+
+- name: Firewall rule - log new {{ item.name }} inbound traffic or filter by IP
+  iptables_raw:
+    name: "filter-{{ item.name }}-new-inbound-list"
+    state: "{{ item.state }}"
+    weight: "{{ item.weight | int + 1 }}"
+    rules: |
+      -A {{ current_input_chain }} -j {{ current_input_list_chain }}
+  notify: Persist rules
+
+- name: Create {{ item.name }} inbound IP allow or block filter rules
+  include_tasks: create_lists.yml
+  loop:
+    - name: "{{ item.name }}"
+      match_blocked: false
+      filter_inbound: true
+      filter_outbound: false
+      weight: "{{ item.weight }}"
+      allowed: "{{ item.allowed }}"
+      blocked: "{{ item.blocked }}"
+      inbound_chain: "{{ current_input_list_chain }}"
+      outbound_chain: ""
+      allowed_inbound_target: "{{ current_input_accept_log_chain }}"
+      allowed_outbound_target: ""
+      blocked_inbound_target: "{{ current_input_accept_log_chain }}"
+      blocked_outbound_target: ""
+  loop_control:
+    loop_var: list
+
+- name: Firewall rule - block unmatched {{ item.name }} inbound traffic if IP filtering is enabled
+  iptables_raw:
+    name: "block-unmatched-inbound-{{ item.name }}"
+    state: "{{ ((item.state == 'present') and ((item.allowed | length > 0) or (item.blocked | length > 0))) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_input_chain }} -j {{ current_input_drop_log_chain }}
+  notify: Persist rules

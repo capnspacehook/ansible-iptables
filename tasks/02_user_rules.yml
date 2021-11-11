@@ -8,14 +8,9 @@
         'state': item.state | default('present'),
         'weight': 25,
         'proto': item.proto,
-        'allow_inbound': true,
-        'inbound_port': item.port,
-        'allow_outbound': false,
-        'outbound_ports': [],
-        'users': [],
+        'port': item.port,
         'allowed': item.allowed | default([]),
         'blocked': item.blocked | default([]),
-        'root_chain': '',
       }] }}
   loop: "{{ iptables_allow_inbound }}"
 
@@ -27,50 +22,15 @@
         'state': item.state | default('present'),
         'weight': 25,
         'proto': item.proto,
-        'allow_inbound': false,
-        'inbound_port': '',
-        'allow_outbound': true,
-        'outbound_ports': item.ports,
-        'users': item.users | default([]),
-        'allowed': item.allowed | default([]),
-        'blocked': item.blocked | default([]),
-        'root_chain': (item.proto + '-' + (item.ports | string) | replace(',', '_') | replace(':', '-')) | upper,
-      }] }}
-    user_service_outbound_chains: >
-      {{ user_service_outbound_chains|default([]) + [{
-        'chain': (item.proto + '-' + (item.ports | string) | replace(',', '_') | replace(':', '-')) | upper,
-        'proto': item.proto,
         'ports': item.ports,
+        'filters': item.filters | default({}),
       }] }}
   loop: "{{ iptables_allow_outbound }}"
 
 - name: Create user inbound allow rules
-  include_tasks: service_rules.yml
+  include_tasks: allow_inbound.yml
   loop: "{{ user_service_inbound_rules }}"
 
-- name: Firewall rule - allow port(s) {{ item.ports }} over {{ item.proto }} outbound
-  iptables_raw:
-    name: "allow-{{ item.chain | lower }}-outbound"
-    state: present
-    weight: 24
-    rules: |
-      -N {{ item.chain }}
-      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ item.chain }}
-      -A {{ item.chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
-  notify: Persist rules
-  loop: "{{ user_service_outbound_chains | unique | list }}"
-
-- name: Firewall rule - block unmatched {{ item.name }} outbound traffic
-  iptables_raw:
-    name: "block-unmatched-outbound-{{ item.chain | lower }}"
-    state: present
-    weight: 26
-    rules: |
-      -A {{ item.chain }} -j {{ log_chain_output_drop }}
-  notify: Persist rules
-  loop: "{{ user_service_outbound_chains | unique | list }}"
-
 - name: Create user outbound allow rules
-  include_tasks: service_rules.yml
+  include_tasks: allow_outbound.yml
   loop: "{{ user_service_outbound_rules }}"

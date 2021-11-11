@@ -33,7 +33,6 @@ bogons_outbound_log_chain: BOGON_OUT_LOG
 ipset_save_file: /etc/iptables/ipset
 
 user_service_inbound_rules: []
-user_service_outbound_chains: []
 user_service_outbound_rules: []
 
 ipset_banned: banned_hosts

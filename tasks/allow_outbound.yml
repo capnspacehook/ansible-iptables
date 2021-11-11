@@ -1,0 +1,79 @@
+---
+
+- name: Set {{ item.name }} variables
+  set_fact:
+    current_root_chain: "{{ item.name | upper }}_OUT"
+    current_output_accept_log_chain: "{{ item.name | upper }}_OUT_ACCEPT_LOG"
+    current_output_drop_log_chain: "{{ item.name | upper }}_OUT_DROP_LOG"
+    current_filters: []
+
+- name: Firewall rule - allow {{ item.name }} outbound
+  iptables_raw:
+    name: "allow-{{ item.name }}-outbound"
+    state: "{{ item.state }}"
+    weight: "{{ item.weight | int - 1 }}"
+    rules: |
+      -N {{ current_root_chain }}
+      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
+      -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j ACCEPT
+  notify: Persist rules
+
+- name: Create {{ item.name }} logging chains
+  include_tasks: log_chain.yml
+  loop:
+    - name: "{{ item.name }}-outbound-accept-chain"
+      rule_name: "logging-{{ item.name }}-outbound-accept-chain"
+      state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_output_accept_log_chain }}"
+      prefix: "{{ item.name | upper }}:OUTPUT:ACCEPT:"
+      action: ACCEPT
+    - name: "{{ item.name }}-outbound-drop-chain"
+      rule_name: "logging-{{ item.name }}-outbound-drop-chain"
+      state: "{{ ((item.state == 'present') and (item.filters | length > 0)) | ternary('present', 'absent') }}"
+      chain_name: "{{ current_output_drop_log_chain }}"
+      prefix: "{{ item.name | upper }}:OUTPUT:DROP:"
+      action: DROP
+  loop_control:
+    loop_var: log_rule
+
+- name: Initialize list {{ item.name }} outbound filters
+  set_fact:
+    current_filters: >
+      {{ current_filters|default([]) + [{
+        'name': filter.name,
+        'state': item.state,
+        'weight': item.weight,
+        'proto': item.proto,
+        'root_chain': current_root_chain,
+        'users': filter.users | default([]),
+        'allowed': filter.allowed | default([]),
+        'blocked': filter.blocked | default([]),
+      }] }}
+  loop: "{{ item.filters }}"
+  loop_control:
+    loop_var: filter
+
+- name: Create {{ item.name }} filters
+  include_tasks: outbound_filters.yml
+  loop: "{{ current_filters }}"
+  loop_control:
+    loop_var: filter
+
+- name: Firewall rule - block unmatched {{ item.name }} outbound traffic if IP filtering is enabled
+  iptables_raw:
+    name: "block-unmatched-outbound-{{ item.name }}"
+    state: "{{ ((item.state == 'present') and (item.filters | length > 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_root_chain }} -j {{ current_output_drop_log_chain }}
+  notify: Persist rules
+
+- name: Firewall rule - log new {{ item.name }} outbound traffic if IP filtering is disabled
+  iptables_raw:
+    name: "log-{{ item.name }}-oubound-accepted"
+    state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_root_chain }} -j {{ current_output_accept_log_chain }}
+  notify: Persist rules
