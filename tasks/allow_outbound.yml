@@ -71,9 +71,18 @@
 
 - name: Firewall rule - log new {{ item.name }} outbound traffic if IP filtering is disabled
   iptables_raw:
-    name: "log-{{ item.name }}-oubound-accepted"
+    name: "log-{{ item.name }}-outbound-accepted"
     state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
     weight: "{{ item.weight | int + 2 }}"
     rules: |
       -A {{ current_root_chain }} -j {{ current_output_accept_log_chain }}
+  notify: Persist rules
+
+- name: Firewall rule - filter {{ item.name }} outbound loopback traffic
+  iptables_raw:
+    name: "filter-{{ item.name }}-outbound-loopback"
+    state: "{{ ((item.state == 'present') and (item.filter_loopback | bool)) | ternary('present', 'absent') }}"
+    weight: 4
+    rules: |
+      -A OUTPUT -o lo -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
   notify: Persist rules

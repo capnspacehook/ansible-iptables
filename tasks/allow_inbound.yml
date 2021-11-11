@@ -87,3 +87,12 @@
     rules: |
       -A {{ current_input_chain }} -j {{ current_input_drop_log_chain }}
   notify: Persist rules
+
+- name: Firewall rule - filter {{ item.name }} inbound loopback traffic
+  iptables_raw:
+    name: "filter-{{ item.name }}-inbound-loopback"
+    state: "{{ ((item.state == 'present') and (item.filter_loopback | bool)) | ternary('present', 'absent') }}"
+    weight: 4
+    rules: |
+      -A INPUT -i lo -p {{ item.proto }} --dport {{ item.port }} -j {{ current_input_chain }}
+  notify: Persist rules

@@ -84,7 +84,7 @@
 
 - name: Firewall rule - filter {{ filter.name }} outbound traffic by IP if user filtering is disabled
   iptables_raw:
-    name: "log-{{ filter.name }}-oubound-filter-accepted"
+    name: "log-{{ filter.name }}-outbound-filter-accepted"
     state: "{{ ((filter.state == 'present') and (filter.users | length == 0)) | ternary('present', 'absent') }}"
     weight: "{{ filter.weight }}"
     rules: |
