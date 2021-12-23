@@ -6,6 +6,14 @@
     current_output_accept_log_chain: "{{ item.name | upper }}_OUT_ACCEPT_LOG"
     current_output_drop_log_chain: "{{ item.name | upper }}_OUT_DROP_LOG"
     current_filters: []
+    current_input_iface: ""
+    current_output_iface: ""
+
+- name: Set {{ item.name }} interfaces
+  set_fact:
+    current_input_iface: "-i {{ item.interface }}"
+    current_output_iface: "-o {{ item.interface }}"
+  when: item.interface | length > 0
 
 - name: Firewall rule - allow {{ item.name }} outbound
   iptables_raw:
@@ -14,8 +22,8 @@
     weight: "{{ item.weight | int - 1 }}"
     rules: |
       -N {{ current_root_chain }}
-      -A OUTPUT -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
-      -A INPUT -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j {{ item.inbound_est_action }}
+      -A OUTPUT {{ current_output_iface }} -p {{ item.proto }} -m multiport --dports {{ item.ports }} -j {{ current_root_chain }}
+      -A INPUT {{ current_input_iface }} -p {{ item.proto }} -m multiport --sports {{ item.ports }} -m state --state ESTABLISHED,RELATED -j {{ item.inbound_est_action }}
   notify: Persist rules
 
 - name: Create {{ item.name }} logging chains

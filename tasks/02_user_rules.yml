@@ -7,6 +7,7 @@
         'name': item.name,
         'state': item.state | default('present'),
         'weight': 25,
+        'interface': item.interface | default(''),
         'proto': item.proto,
         'port': item.port,
         'filter_loopback': item.filter_loopback | default(false),
@@ -25,13 +26,14 @@
         'name': item.name,
         'state': item.state | default('present'),
         'weight': 25,
+        'interface': item.interface | default(''),
         'proto': item.proto,
         'ports': item.ports,
         'filter_loopback': item.filter_loopback | default(false),
         'action': item.action | default('ACCEPT'),
         'inbound_est_action': item.inbound_est_action | default('ACCEPT'),
         'outbound_est_action': item.outbound_est_action | default('ACCEPT'),
-        'filters': item.filters | default({}),
+        'filters': item.filters | default([]),
       }] }}
   loop: "{{ iptables_allow_outbound }}"
 
