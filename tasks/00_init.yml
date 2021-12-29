@@ -47,3 +47,12 @@
       action: DROP
   loop_control:
     loop_var: log_rule
+
+- name: Make ansible iptables state files inaccessible to everyone
+  file:
+    path: /etc/ansible-iptables
+    state: directory
+    recurse: yes
+    mode: 0600
+    owner: root
+    group: root
