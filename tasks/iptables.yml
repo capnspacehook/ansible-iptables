@@ -9,23 +9,23 @@
 - import_tasks: 01_ipset.yml
   tags: ipset
 
-- import_tasks: 02_user_rules.yml
+- import_tasks: 02_bogons.yml
+  tags: bogons
+
+- import_tasks: 03_user_rules.yml
   tags: user_rules
 
-- import_tasks: 03_base_rules.yml
+- import_tasks: 04_base_rules.yml
   tags: base_rules
 
-- import_tasks: 04_block_attacks.yml
+- import_tasks: 05_block_attacks.yml
   tags: block_attacks
 
-- import_tasks: 05_global_rules.yml
+- import_tasks: 06_global_rules.yml
   tags: global_rules
 
-- import_tasks: 06_filter_icmp.yml
+- import_tasks: 07_filter_icmp.yml
   tags: filter_icmp
 
-- import_tasks: 07_ban_hosts.yml
+- import_tasks: 08_ban_hosts.yml
   tags: ban_hosts
-
-- import_tasks: 08_bogons.yml
-  tags: bogons

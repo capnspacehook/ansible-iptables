@@ -54,6 +54,7 @@
         'proto': item.proto,
         'root_chain': current_root_chain,
         'users': filter.users | default([]),
+        'block_bogons': filter.block_bogons | default(false),
         'allowed': filter.allowed | default([]),
         'blocked': filter.blocked | default([]),
         'action': filter.action | default('ACCEPT'),
@@ -78,7 +79,7 @@
       -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
   notify: Persist rules
 
-- name: Firewall rule - block unmatched {{ item.name }} outbound traffic if IP filtering is enabled
+- name: Firewall rule - block unmatched {{ item.name }} outbound traffic if filters are specified
   iptables_raw:
     name: "block-unmatched-outbound-{{ item.name }}"
     state: "{{ ((item.state == 'present') and (item.filters | length > 0)) | ternary('present', 'absent') }}"
@@ -87,7 +88,7 @@
       -A {{ current_root_chain }} -j {{ current_output_drop_log_chain }}
   notify: Persist rules
 
-- name: Firewall rule - log new {{ item.name }} outbound traffic if IP filtering is disabled
+- name: Firewall rule - log new {{ item.name }} outbound traffic if IP filtering filters are not specified
   iptables_raw:
     name: "log-{{ item.name }}-outbound-accepted"
     state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"

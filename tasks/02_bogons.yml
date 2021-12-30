@@ -10,6 +10,16 @@
     bogon_ips: []
   when: not iptables_block_bogons
 
+- name: Firewall rule - create bogon chains
+  iptables_raw:
+    name: create-bogons-chains
+    state: "{{ (iptables_block_bogons | bool) | ternary('present', 'absent') }}"
+    weight: 17
+    rules: |
+      -N {{ bogons_inbound_chain }}
+      -N {{ bogons_outbound_chain }}
+  notify: Persist rules
+
 - name: Create bogon logging chains
   include_tasks: log_chain.yml
   loop:
@@ -33,13 +43,13 @@
   loop:
     - name: bogons
       match_blocked: true
-      filter_inbound: true
-      filter_outbound: true
+      filter_inbound: "{{ iptables_block_bogons | bool }}"
+      filter_outbound: "{{ iptables_block_bogons | bool }}"
       weight: 17
       allowed: []
       blocked: "{{ bogon_ips }}"
-      inbound_chain: INPUT
-      outbound_chain: OUTPUT
+      inbound_chain: "{{ bogons_inbound_chain }}"
+      outbound_chain: "{{ bogons_outbound_chain }}"
       allowed_inbound_target: ""
       allowed_outbound_target: ""
       blocked_inbound_target: "{{ bogons_inbound_log_chain }}"

@@ -35,8 +35,8 @@
   loop:
     - name: global
       match_blocked: true
-      filter_inbound: true
-      filter_outbound: true
+      filter_inbound: "{{ (iptables_global_allow | length > 0) or (iptables_global_block | length > 0) }}"
+      filter_outbound: "{{ (iptables_global_allow | length > 0) or (iptables_global_block | length > 0) }}"
       weight: 15
       allowed: "{{ iptables_global_allow }}"
       blocked: "{{ iptables_global_block }}"

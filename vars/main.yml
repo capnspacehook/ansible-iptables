@@ -2,6 +2,11 @@
 
 log_chain_output_drop: LOG_OUT_DROP
 
+bogons_inbound_chain: BOGON_IN
+bogons_outbound_chain: BOGON_OUT
+bogons_inbound_log_chain: BOGON_IN_LOG
+bogons_outbound_log_chain: BOGON_OUT_LOG
+
 invalid_inbound_log_chain: INVALID_IN_LOG
 invalid_outbound_log_chain: INVALID_OUT_LOG
 local_ip_inbound_log_chain: LOCAL_IP_IN_LOG
@@ -26,9 +31,6 @@ icmp_outbound_log_chain: ICMP_OUT_LOG
 ban_chain: BAN
 log_and_ban_chain: LOG_AND_BAN
 log_banned_chain: BANNED_LOG
-
-bogons_inbound_log_chain: BOGON_IN_LOG
-bogons_outbound_log_chain: BOGON_OUT_LOG
 
 ipset_save_file: /etc/iptables/ipset
 

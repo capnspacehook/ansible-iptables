@@ -31,7 +31,7 @@
 - name: Firewall rule - create {{ filter.name }} outbound IP chain if IP filtering is enabled
   iptables_raw:
     name: "create-{{ filter.name }}-outbound-list-chain"
-    state: "{{ ((filter.state == 'present') and ((filter.allowed | length > 0) or (filter.blocked | length > 0))) | ternary('present', 'absent') }}"
+    state: "{{ ((filter.state == 'present') and ((filter.allowed | length > 0) or (filter.blocked | length > 0) or (filter.block_bogons | bool))) | ternary('present', 'absent') }}"
     weight: "{{ filter.weight }}"
     rules: |
       -N {{ filter_output_list_chain }}
@@ -40,7 +40,7 @@
 - name: Set {{ filter.name }} chains if IP filtering is disabled
   set_fact:
     filter_output_list_chain: "{{ filter_output_accept_log_chain }}"
-  when: (filter.allowed | length == 0) and (filter.blocked | length == 0)
+  when: (filter.allowed | length == 0) and (filter.blocked | length == 0) and not filter.block_bogons
 
 - name: Firewall rule - filter outbound {{ filter.name }} traffic by user if user filtering is enabled
   iptables_raw:
@@ -55,13 +55,31 @@
     loop_var: user
   notify: Persist rules
 
+- name: Firewall rule - filter {{ filter.name }} outbound traffic by IP if user filtering is disabled
+  iptables_raw:
+    name: "log-{{ filter.name }}-outbound-filter-accepted"
+    state: "{{ ((filter.state == 'present') and (filter.users | length == 0)) | ternary('present', 'absent') }}"
+    weight: "{{ filter.weight }}"
+    rules: |
+      -A {{ filter_output_chain }} -j {{ filter_output_list_chain }}
+  notify: Persist rules
+
+- name: Firewall rule - block {{ filter.name }} outbound traffic to bogons
+  iptables_raw:
+    name: "filter-{{ filter.name }}-outbound-bogons"
+    state: "{{ ((filter.state == 'present') and (filter.block_bogons | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ filter.weight }}"
+    rules: |
+      -A {{ filter_output_list_chain }} -j {{ bogons_outbound_chain }}
+  notify: Persist rules
+
 - name: Create {{ filter.name }} IP allow or block filter rules
   include_tasks: create_lists.yml
   loop:
     - name: "{{ filter.name }}"
       match_blocked: false
       filter_inbound: false
-      filter_outbound: true
+      filter_outbound: "{{ filter.state == 'present' }}"
       weight: "{{ filter.weight }}"
       allowed: "{{ filter.allowed }}"
       blocked: "{{ filter.blocked }}"
@@ -74,6 +92,15 @@
   loop_control:
     loop_var: list
 
+- name: Firewall rule - allow {{ filter.name }} outbound traffic if IP filtering is disabled
+  iptables_raw:
+    name: "allow-{{ filter.name }}-outbound-filter"
+    state: "{{ ((filter.state == 'present') and ((filter.block_bogons | bool) and ((filter.allowed | length == 0) and (filter.blocked | length == 0)))) | ternary('present', 'absent') }}"
+    weight: "{{ filter.weight }}"
+    rules: |
+      -A {{ filter_output_list_chain }} -j {{ filter_output_accept_log_chain }}
+  notify: Persist rules
+
 - name: Firewall rule - allow TCP to close connections for {{ filter.name }} outbound traffic if user filtering is enabled
   iptables_raw:
     name: "allow-{{ filter.name }}-outbound-filter-closed"
@@ -81,13 +108,4 @@
     weight: "{{ filter.weight | int + 1 }}"
     rules: |
       -A {{ filter_output_chain }} -m owner ! --socket-exists -j ACCEPT
-  notify: Persist rules
-
-- name: Firewall rule - filter {{ filter.name }} outbound traffic by IP if user filtering is disabled
-  iptables_raw:
-    name: "log-{{ filter.name }}-outbound-filter-accepted"
-    state: "{{ ((filter.state == 'present') and (filter.users | length == 0)) | ternary('present', 'absent') }}"
-    weight: "{{ filter.weight }}"
-    rules: |
-      -A {{ filter_output_chain }} -j {{ filter_output_list_chain }}
   notify: Persist rules

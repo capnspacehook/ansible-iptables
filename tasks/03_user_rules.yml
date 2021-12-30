@@ -14,6 +14,7 @@
         'action': item.action | default('ACCEPT'),
         'inbound_est_action': item.inbound_est_action | default('ACCEPT'),
         'outbound_est_action': item.outbound_est_action | default('ACCEPT'),
+        'block_bogons': item.block_bogons | default(false),
         'allowed': item.allowed | default([]),
         'blocked': item.blocked | default([]),
       }] }}

@@ -6,6 +6,8 @@ ipset_destroy_sets: false
 iptables_log_limit: 1/sec
 iptables_log_level: info
 
+iptables_block_bogons: false
+
 iptables_block_attacks: true
 
 iptables_global_allow: []
@@ -21,8 +23,6 @@ iptables_allow_ping_inbound: false
 iptables_allow_ping_outbound: false
 iptables_ping_users: [root]
 iptables_filter_icmp: true
-
-iptables_block_bogons: false
 
 iptables_allow_inbound: []
 iptables_allow_outbound: []
