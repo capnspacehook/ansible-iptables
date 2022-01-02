@@ -8,7 +8,7 @@
     current_block_negate: "{{ list.match_blocked | bool | ternary('', '!') }}"
 
 - name: Create ipset for allowed {{ list.name }} hosts/ranges
-  command: "ipset create {{ current_allowed_set }} hash:net family inet"
+  command: "ipset create {{ current_allowed_set }} hash:net timeout 0 family inet"
   register: ipset_out
   changed_when: "'set with the same name already exists' not in ipset_out.stderr"
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
@@ -52,7 +52,7 @@
   notify: Persist rules
 
 - name: Create ipset for blocked {{ list.name }} hosts/ranges
-  command: "ipset create {{ current_blocked_set }} hash:net family inet"
+  command: "ipset create {{ current_blocked_set }} hash:net timeout 0 family inet"
   register: ipset_out
   changed_when: "'set with the same name already exists' not in ipset_out.stderr"
   failed_when: "ipset_out.rc != 0 and 'set with the same name already exists' not in ipset_out.stderr"
