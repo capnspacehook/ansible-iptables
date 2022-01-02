@@ -26,6 +26,3 @@
 
 - import_tasks: 07_filter_icmp.yml
   tags: filter_icmp
-
-- import_tasks: 08_ban_hosts.yml
-  tags: ban_hosts

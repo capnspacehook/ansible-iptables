@@ -8,7 +8,7 @@
       state: "{{ (iptables_block_attacks | bool) | ternary('present', 'absent') }}"
       chain_name: "{{ portscans_inbound_log_chain }}"
       prefix: "PORTSCAN:INPUT:DROP:"
-      action: "{{ ban_chain }}"
+      action: DROP
   loop_control:
     loop_var: log_rule
 

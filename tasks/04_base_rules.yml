@@ -68,7 +68,7 @@
     name: log-dropped
     weight: 90
     rules: |
-      -A INPUT -j {{ log_and_ban_chain }}
+      -A INPUT -j {{ log_chain_input_drop }}
       -A OUTPUT -j {{ log_chain_output_drop }}
   notify: Persist rules
 

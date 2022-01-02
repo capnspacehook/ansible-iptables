@@ -88,7 +88,7 @@
       state: "{{ (iptables_filter_icmp | bool) | ternary('present', 'absent') }}"
       chain_name: "{{ icmp_inbound_log_chain }}"
       prefix: "ICMP:INPUT:DROP:"
-      action: "{{ ban_chain }}"
+      action: DROP
     - name: icmp-outbound-drop-chain
       rule_name: logging-icmp-outbound-drop-chain
       state: "{{ (iptables_filter_icmp | bool) | ternary('present', 'absent') }}"

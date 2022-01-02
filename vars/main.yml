@@ -1,5 +1,6 @@
 ---
 
+log_chain_input_drop: LOG_IN_DROP
 log_chain_output_drop: LOG_OUT_DROP
 
 bogons_inbound_chain: BOGON_IN
@@ -27,10 +28,6 @@ ping_filter_size_inbound_chain: PING_IN_FILTER_SIZE
 ping_filter_size_outbound_chain: PING_OUT_FILTER_SIZE
 icmp_inbound_log_chain: ICMP_IN_LOG
 icmp_outbound_log_chain: ICMP_OUT_LOG
-
-ban_chain: BAN
-log_and_ban_chain: LOG_AND_BAN
-log_banned_chain: BANNED_LOG
 
 ipset_save_file: /etc/iptables/ipset
 
