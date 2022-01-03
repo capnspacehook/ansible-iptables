@@ -27,15 +27,6 @@
       -A OUTPUT {{ current_output_iface }} -p {{ item.proto }} --sport {{ item.port }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
   notify: Persist rules
 
-- name: Firewall rule - block {{ item.name }} inbound traffic to bogons
-  iptables_raw:
-    name: "filter-{{ item.name }}-inbound-bogons"
-    state: "{{ ((item.state == 'present') and (item.block_bogons | bool)) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight }}"
-    rules: |
-      -A {{ current_input_chain }} -j {{ bogons_inbound_chain }}
-  notify: Persist rules
-
 - name: Create {{ item.name }} logging chains
   include_tasks: log_chain.yml
   loop:
@@ -66,7 +57,7 @@
 - name: Set {{ item.name }} chains if IP filtering is disabled
   set_fact:
     current_input_list_chain: "{{ current_input_accept_log_chain }}"
-  when: (item.allowed | length == 0) and (item.blocked | length == 0)
+  when: (not item.block_bogons) and (item.allowed | length == 0) and (item.blocked | length == 0)
 
 - name: Firewall rule - log new {{ item.name }} inbound traffic or filter by IP
   iptables_raw:
@@ -96,11 +87,20 @@
   loop_control:
     loop_var: list
 
+- name: Firewall rule - block {{ item.name }} inbound traffic to bogons
+  iptables_raw:
+    name: "filter-{{ item.name }}-inbound-bogons"
+    state: "{{ ((item.state == 'present') and (item.block_bogons | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight | int + 2 }}"
+    rules: |
+      -A {{ current_input_chain }} -j {{ bogons_inbound_chain }}
+  notify: Persist rules
+
 - name: Firewall rule - block unmatched {{ item.name }} inbound traffic if IP filtering is enabled
   iptables_raw:
     name: "block-unmatched-inbound-{{ item.name }}"
     state: "{{ ((item.state == 'present') and ((item.allowed | length > 0) or (item.blocked | length > 0))) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight | int + 2 }}"
+    weight: "{{ item.weight | int + 3 }}"
     rules: |
       -A {{ current_input_chain }} -j {{ current_input_drop_log_chain }}
   notify: Persist rules

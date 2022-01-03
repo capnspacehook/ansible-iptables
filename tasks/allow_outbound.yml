@@ -44,6 +44,15 @@
   loop_control:
     loop_var: log_rule
 
+- name: Firewall rule - allow established {{ item.name }} outbound if filters are not specified
+  iptables_raw:
+    name: "allow-established-{{ item.name }}-outbound"
+    state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
+    weight: "{{ item.weight }}"
+    rules: |
+      -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
+  notify: Persist rules
+
 - name: Initialize list {{ item.name }} outbound filters
   set_fact:
     current_filters: >
@@ -70,29 +79,20 @@
   loop_control:
     loop_var: filter
 
-- name: Firewall rule - allow established {{ item.name }} outbound
-  iptables_raw:
-    name: "allow-established-{{ item.name }}-outbound"
-    state: "{{ item.state }}"
-    weight: "{{ item.weight | int + 1 }}"
-    rules: |
-      -A {{ current_root_chain }} -m state --state ESTABLISHED,RELATED -j {{ item.outbound_est_action }}
-  notify: Persist rules
-
 - name: Firewall rule - block unmatched {{ item.name }} outbound traffic if filters are specified
   iptables_raw:
     name: "block-unmatched-outbound-{{ item.name }}"
     state: "{{ ((item.state == 'present') and (item.filters | length > 0)) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight | int + 2 }}"
+    weight: "{{ item.weight | int + 1 }}"
     rules: |
       -A {{ current_root_chain }} -j {{ current_output_drop_log_chain }}
   notify: Persist rules
 
-- name: Firewall rule - log new {{ item.name }} outbound traffic if IP filtering filters are not specified
+- name: Firewall rule - log new {{ item.name }} outbound traffic if filters are not specified
   iptables_raw:
     name: "log-{{ item.name }}-outbound-accepted"
     state: "{{ ((item.state == 'present') and (item.filters | length == 0)) | ternary('present', 'absent') }}"
-    weight: "{{ item.weight | int + 2 }}"
+    weight: "{{ item.weight | int + 1 }}"
     rules: |
       -A {{ current_root_chain }} -j {{ current_output_accept_log_chain }}
   notify: Persist rules

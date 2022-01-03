@@ -64,15 +64,6 @@
       -A {{ filter_output_chain }} -j {{ filter_output_list_chain }}
   notify: Persist rules
 
-- name: Firewall rule - block {{ filter.name }} outbound traffic to bogons
-  iptables_raw:
-    name: "filter-{{ filter.name }}-outbound-bogons"
-    state: "{{ ((filter.state == 'present') and (filter.block_bogons | bool)) | ternary('present', 'absent') }}"
-    weight: "{{ filter.weight }}"
-    rules: |
-      -A {{ filter_output_list_chain }} -j {{ bogons_outbound_chain }}
-  notify: Persist rules
-
 - name: Create {{ filter.name }} IP allow or block filter rules
   include_tasks: create_lists.yml
   loop:
@@ -92,11 +83,20 @@
   loop_control:
     loop_var: list
 
+- name: Firewall rule - block {{ filter.name }} outbound traffic to bogons
+  iptables_raw:
+    name: "filter-{{ filter.name }}-outbound-bogons"
+    state: "{{ ((filter.state == 'present') and (filter.block_bogons | bool)) | ternary('present', 'absent') }}"
+    weight: "{{ filter.weight | int + 1 }}"
+    rules: |
+      -A {{ filter_output_list_chain }} -j {{ bogons_outbound_chain }}
+  notify: Persist rules
+
 - name: Firewall rule - allow {{ filter.name }} outbound traffic if IP filtering is disabled
   iptables_raw:
     name: "allow-{{ filter.name }}-outbound-filter"
     state: "{{ ((filter.state == 'present') and ((filter.block_bogons | bool) and ((filter.allowed | length == 0) and (filter.blocked | length == 0)))) | ternary('present', 'absent') }}"
-    weight: "{{ filter.weight }}"
+    weight: "{{ filter.weight | int + 2 }}"
     rules: |
       -A {{ filter_output_list_chain }} -j {{ filter_output_accept_log_chain }}
   notify: Persist rules
