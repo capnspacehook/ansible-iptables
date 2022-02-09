@@ -3,6 +3,22 @@
 log_chain_input_drop: LOG_IN_DROP
 log_chain_output_drop: LOG_OUT_DROP
 
+bogon_ips:
+  - "0.0.0.0/8"
+  - "10.0.0.0/8"
+  - "100.64.0.0/10"
+  - "127.0.0.0/8"
+  - "169.254.0.0/16"
+  - "172.16.0.0/12"
+  - "192.0.0.0/24"
+  - "192.0.2.0/24"
+  - "192.168.0.0/16"
+  - "198.18.0.0/15"
+  - "198.51.100.0/24"
+  - "203.0.113.0/24"
+  - "224.0.0.0/4"
+  - "240.0.0.0/4"
+
 bogons_inbound_chain: BOGON_IN
 bogons_outbound_chain: BOGON_OUT
 bogons_inbound_log_chain: BOGON_IN_LOG
@@ -38,5 +54,3 @@ ipset_banned: banned_hosts
 ipset_bogons: bogons
 
 iptables_suspicious_hashtable: t_SUSPICIOUS
-
-bogon_list_url: "https://www.team-cymru.org/Services/Bogons/bogon-bn-nonagg.txt"

@@ -1,15 +1,5 @@
 ---
 
-- name: "Set bogon IPs"
-  set_fact:
-    bogon_ips: "{{ query('url', lookup('vars', 'bogon_list_url')) }}"
-  when: iptables_block_bogons | bool
-
-- name: "Unset bogon IPs"
-  set_fact:
-    bogon_ips: []
-  when: not iptables_block_bogons
-
 - name: Firewall rule - create bogon chains
   iptables_raw:
     name: create-bogons-chains
