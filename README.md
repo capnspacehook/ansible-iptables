@@ -1,66 +1,92 @@
-# Iptables (Ansible Role)
+# iptables (Ansible Role)
 
-This role applies a strict, secure `iptables` set of rules with many configurable options. 
+This role applies a strict and secure set of rules for `iptables` with many configurable options.
 
-Default rules are:
+You declare what inbound and outbound traffic should be allowed, and this role will take care of the rest.
 
+In addition to allowing the traffic you specify, this role will:
+
+- install and make `iptables` and `ipset` rules persistent
 - allow all loopback traffic
 - block invalid packets, TCP portscan packets
-- block all traffic involving bogons (martians)
 - block deprecated ICMP messages
-- log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic seperately
-
-Note that no other traffic is allowed inbound/outbound by default, if you want specific ports opened you will have to specify that yourself.
-
-In addition to this, a package to persist `iptables` rules upon reboot is installed and configured and `ipset` is installed.
-A script is also installed that persists `ipset` sets upon reboot as well.
-
-The benefits of using this role are robust logging, portscan blocking, ICMP filtering (ICMP echo shells shouldn't work), and strict rules that only allow established traffic outbound for an inbound rule and vice versa, as well as filtering outbound traffic by specific user/groups.
-
-## Requirements
-
-This role uses the [iptables-raw](https://github.com/Nordeus/ansible_iptables_raw) module for manipulating `iptables`. The embedded module is current as of commit https://github.com/Nordeus/ansible_iptables_raw/commit/86ee3e0997af235bcd0a8b1ae5982f43e9612518.
+- log all new accepted inbound, dropped inbound, accepted outbound and dropped outbound traffic separately
 
 ## Role Variables
 
 |Name|Default Value|Description|
 |----|-------------|-----------|
-|`iptables_keep_unmanaged_rules`|no|'yes' if you want to keep all rules and chains not managed by this Ansible role|
+|`iptables_keep_unmanaged_rules`|'no'|'yes' if you want to keep all rules and chains not managed by this Ansible role|
 |`ipset_destroy_sets`|false|true if you want to destroy all previously created `ipset` sets|
-|`iptables_log_limit`|1/sec|amount of log messages from `iptables` that will be printed. Useful for supressing multiple logs of similar events|
+|`iptables_log_limit`|1/sec|amount of log messages from `iptables` that will be printed. Useful for suppressing multiple logs of similar events|
 |`iptables_log_level`|info|level at which `iptables` will log|
+|`iptables_block_bogons`|true|true if you want to block traffic involving bogons/martians|
+|`iptables_block_attacks`|true|true if you want to block invalid and portscanning TCP packets|
 |`iptables_global_allow`|[]|IPs or ranges to always allow|
 |`iptables_global_block`|[]|IPs or ranges to always block|
-|`iptables_block_attacks`|true|true if you want to block invalid and portscanning TCP packets|
 |`iptables_allow_ping_inbound`|false|true if you want to make your box pingable|
 |`iptables_allow_ping_outbound`|false|true if you want to ping other boxes|
-|`iptables_ping_users`|root|users to allow sending ICMP echo-requests outbound|
+|`iptables_ping_users`|["root"]|users to allow sending ICMP echo-requests outbound|
 |`iptables_filter_icmp`|true|true if you want to block deprecated ICMP messages|
-|`iptables_block_bogons`|true|true if you want to block traffic involving bogons/martians|
 |`iptables_allow_inbound`|[]|ports to allow inbound|
 |`iptables_allow_outbound`|[]|ports to allow outbound|
 |`iptables_configuration_enabled`|true|true if you want this role to run|
 
-## Outbound Ports
+## Allowing Inbound Traffic
 
-Up to 15 ports can be specified for outbound rules. Ports must be separated with a comma with no whitespace in between, ex. `80,443`. Port ranges can be specified by entering a colon between two ports, ex. `1024:65535`. This counts as two out of the 15 max ports.
+`iptables_allow_inbound` takes a list of rules, which have the following options:
 
-## Users Filering
+|Name|Default Value|Required|Description|
+|----|-------------|--------|-----------|
+|`name`|""|true|name of the rule. Note due to `iptables` restrictions this must be less than 15 characters|
+|`state`|"present"|false|"present" if the rule should be enabled, and "absent" otherwise|
+|`interface`|""|false|name of the interface traffic will be allowed through|
+|`proto`|""|true|name of the protocol to allow, "tcp" or "udp"|
+|`port`|0|true|port that will be allowed|
+|`filter_loopback`|false|false|whether to filter inbound loopback traffic on this port or not|
+|`action`|"ACCEPT"|false|the action to take on new inbound traffic|
+|`inbound_est_action`|"ACCEPT"|false|the action to take on established inbound traffic|
+|`outbound_est_action`|"ACCEPT"|false|the action to take on established outbound traffic|
+|`block_bogons`|false|false|whether to block bogon (private) traffic or not|
+|`allowed`|[]|false|IPs or ranges to allow|
+|`blocked`|[]|false|IPs or ranges to block|
 
-Any of the `*_users` variables can be set to an empty list to make them allow all users.
+## Allowing Outbound Traffic
 
-## Additional Rules
+`iptables_allow_inbound` takes a list of rules, which have the following options:
 
-The `iptables_allow_inbound` and `iptables_allow_outbound` variables can be used to add additional rules. Both varibles take a list of dicts, with the following keys:
+|Name|Default Value|Required|Description|
+|----|-------------|--------|-----------|
+|`name`|""|true|name of the rule. Note due to `iptables` restrictions this must be less than 15 characters|
+|`state`|"present"|false|"present" if the rule should be enabled, and "absent" otherwise|
+|`interface`|""|false|name of the interface traffic will be allowed through|
+|`proto`|""|true|name of the protocol to allow, "tcp" or "udp"|
+|`ports`|0|true|ports that will be allowed|
+|`filter_loopback`|false|false|whether to filter outbound loopback traffic on these ports or not|
+|`action`|"ACCEPT"|false|the action to take on new outbound traffic|
+|`inbound_est_action`|"ACCEPT"|false|the action to take on established inbound traffic|
+|`outbound_est_action`|"ACCEPT"|false|the action to take on established outbound traffic|
+|`filters`|[]|false|additional restrictions to apply|
 
-- name: name of the service
-- state: optional; 'present' if you want to enable the rule, and 'absent' if you want to disable it
-- proto: the protocol to allow
-- port: the port to allow for inbound rules
-- ports: the port(s) to allow for outbound rules, up to 15 ports can be specified
-- users: optional; the users to allow
-- allowed: optional; IPs to allow
-- blocked: optional; IPs to block
+### Outbound Ports
+
+Up to 15 ports can be specified for outbound rules. Ports must be comma separated, ex. `80,443`. Port ranges can be specified by entering a colon between two ports, ex. `1024:65535`. This counts as two out of the 15 max ports.
+
+### Outbound Filters
+
+Outbound rules allow multiple filters to be applied per rule. This can enable different behavior for different users making outbound connections to the same port.
+You can for example only allow certain users to connect to certain IPs, and allow other users to have unrestricted access on the same port.
+Outbound filters have the following options:
+
+|Name|Default Value|Required|Description|
+|----|-------------|--------|-----------|
+|`name`|""|true|name of the rule. Note due to `iptables` restrictions this must be less than 15 characters when combined with the name of the parent outbound rule|
+|`users`|[]|false|users that this filter will match on|
+|`block_bogons`|false|false|whether to block bogon (private) traffic or not|
+|`allowed`|[]|false|IPs or ranges to allow|
+|`blocked`|[]|false|IPs or ranges to block|
+|`action`|"ACCEPT"|false|the action to take on new outbound traffic|
+|`est_action`|"ACCEPT"|false|the action to take on established outbound traffic|
 
 ## ICMP Filtering
 
@@ -95,8 +121,19 @@ ansible-galaxy install capnspacehook.iptables
   vars:
     iptables_allow_inbound:
       - name: postgres
-        port: 5432
         proto: tcp
-        users: 
-          - postgres
+        port: 5432
+    iptables_allow_outbound:
+      - name: https
+        proto: tcp
+        port: 443
+        filters:
+          - name: apt
+            users:
+              - _apt
+          - name: metrics
+            users:
+              - prometheus
+            allowed:
+              - 192.168.1.23
 ``` 
